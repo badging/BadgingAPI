@@ -4,8 +4,15 @@
   "description": "Server Side Development for ProjectBadging",
   "main": "index.js",
   "scripts": {
+    "lint": "npx eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "prettier": "npx prettier . --check",
+    "prettier:fix": "npm run prettier -- --write",
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "precommit": "lint-staged",
     "test": "npm run test",
-    "dev": "nodemon run dev"
+    "dev": "nodemon run dev",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -23,5 +30,20 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "nodemon": "^2.0.22"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,md,html}": [
+      "npm run format",
+      "git add"
+    ]
   }
 }
