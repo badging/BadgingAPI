@@ -1,0 +1,27 @@
+{
+  "name": "badgingapi",
+  "version": "1.0.0",
+  "description": "Server Side Development for ProjectBadging",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test",
+    "dev": "nodemon run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AllInOpenSource/BadgingAPI.git"
+  },
+  "author": "CHAOSS/AllInOpenSource",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AllInOpenSource/BadgingAPI/issues"
+  },
+  "homepage": "https://github.com/AllInOpenSource/BadgingAPI#readme",
+  "dependencies": {
+    "@octokit/rest": "^19.0.11",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "nodemon": "^2.0.22"
+  }
+}
