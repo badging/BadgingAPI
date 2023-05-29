@@ -42,6 +42,7 @@ app.get("/api/auth/github/callback", async (req, res) => {
 
     const userRepos = await octokit.repos.listForAuthenticatedUser();
     const repositories = userRepos.data;
+    console.log(repositories);
 
     res.send(`
     <h1>Select Repositories</h1>
