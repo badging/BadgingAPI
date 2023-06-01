@@ -8,11 +8,11 @@ const { handleGithubCallback, scanner } = require("./src");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send('<a href="/auth/github">Login with GitHub</a>');
+app.get("/api", (req, res) => {
+  res.send('<a href="/api/auth/github">Login with GitHub</a>');
 });
 
-app.get("/auth/github", (req, res) => {
+app.get("/api/auth/github", (req, res) => {
   const scopes = ["user", "repo", "project", "admin:org"];
   res.redirect(
     `https://github.com/login/oauth/authorize?client_id=${
