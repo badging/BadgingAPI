@@ -1,4 +1,3 @@
-// githubCallback.js
 const handleGithubCallback = async (req, res, octokit) => {
   const userRepos = await octokit.repos.listForAuthenticatedUser();
   const repositories = userRepos.data;

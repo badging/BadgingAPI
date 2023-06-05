@@ -1,7 +1,8 @@
 // const fs = require("fs");
 const { Octokit } = require("@octokit/rest");
+const mailer = require("./mailer.js");
 
-const scanner = async (req, res) => {
+const scanner = async (req, res, login, name, email) => {
   const report = [];
   let deiFilePresent = false; // Track if DEI file is present
 
@@ -56,7 +57,8 @@ const scanner = async (req, res) => {
       report.push("❌ DEI file not present"); // Add the message if DEI file is not found
     }
 
-    res.json(report);
+    // res.json(report);
+    mailer(req, res, login, name, email, report);
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).send("Internal Server Error");

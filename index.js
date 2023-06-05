@@ -1,12 +1,15 @@
 const express = require("express");
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
+const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const { handleGithubCallback, scanner } = require("./src");
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 app.get("/api", (req, res) => {
   res.send('<a href="/api/auth/github">Login with GitHub</a>');
@@ -20,6 +23,8 @@ app.get("/api/auth/github", (req, res) => {
     }&redirect_uri=${process.env.REDIRECT_URI}&scope=${scopes.join(",")}`
   );
 });
+
+let name, login, email;
 
 app.get("/api/auth/github/callback", async (req, res) => {
   // get GitHub User token to use for API calls with octokit
@@ -41,6 +46,10 @@ app.get("/api/auth/github/callback", async (req, res) => {
 
     const octokit = new Octokit({ auth: `${tokenResponse.data.access_token}` });
 
+    ({
+      data: { login, name, email },
+    } = await octokit.users.getAuthenticated());
+
     // use the octokit client in the callback Handler
     handleGithubCallback(req, res, octokit);
   } catch (error) {
@@ -49,7 +58,7 @@ app.get("/api/auth/github/callback", async (req, res) => {
   }
 });
 
-app.post("/api/repo", scanner);
+app.post("/api/repo", (req, res) => scanner(req, res, login, name, email));
 
 app.listen(process.env.PORT, () => {
   console.log(`App listening at http://localhost:${process.env.PORT}`);
