@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const mailer = async (req, res, login, name, email, report) => {
+const mailer = async (email, report) => {
   const reportText = report.join("\n");
   // Define the email options
   const mailOptions = {

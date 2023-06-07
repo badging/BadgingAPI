@@ -4,7 +4,8 @@ const axios = require("axios");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 
-const { handleGithubCallback, scanner } = require("./src");
+const { handleGithubCallback } = require("./src");
+const { badges } = require("./src/badges");
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -58,7 +59,7 @@ app.get("/api/auth/github/callback", async (req, res) => {
   }
 });
 
-app.post("/api/repo", (req, res) => scanner(req, res, login, name, email));
+app.post("/api/repo", (req, res) => badges(req, res, login, name, email));
 
 app.listen(process.env.PORT, () => {
   console.log(`App listening at http://localhost:${process.env.PORT}`);
