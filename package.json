@@ -10,7 +10,8 @@
     "prettier:fix": "npm run prettier -- --write",
     "format": "npm run prettier:fix && npm run lint:fix",
     "test": "npm run test",
-    "dev": "nodemon run dev",
+    "dev": "NODE_ENV=development nodemon index.js",
+    "start": "NODE_ENV=production node index.js",
     "prepare": "husky install",
     "build": "webpack"
   },
@@ -25,13 +26,18 @@
   },
   "homepage": "https://github.com/AllInOpenSource/BadgingAPI#readme",
   "dependencies": {
+    "@octokit/auth-oauth-app": "^6.0.1",
+    "@octokit/core": "^4.2.4",
     "@octokit/rest": "^19.0.11",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
     "nodemailer": "^6.9.3",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "octokit": "^2.1.0",
+    "smee-client": "^1.2.3"
   },
   "devDependencies": {
     "babel-loader": "^9.1.2",

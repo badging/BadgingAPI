@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
+const mailer = (email, results)=>{
+
 // Create a transporter using your email service provider's SMTP settings
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -10,14 +12,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const mailer = async (email, report) => {
-  const reportText = report.join("\n");
   // Define the email options
   const mailOptions = {
-    from: "your_email",
+    from: "ekaxada@gmail.com",
     to: email,
     subject: "DEI report",
-    text: reportText,
+    text: results.join("\n"),
   };
 
   // Send the email

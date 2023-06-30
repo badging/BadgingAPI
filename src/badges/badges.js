@@ -1,15 +1,14 @@
 const { Octokit } = require("@octokit/rest");
-// const { scanner } = require("../helpers");
+const { scanne, awardBadge } = require("../helpers");
 const bronzeBadge = require("./bronzeBadge");
 
-const badges = async (req, res, login, name, email) => {
-
+const badges = async (req, res, login, name, email, octokit) => {
   let deiFilePresent = false; // track presence of DEI file
 
   try {
     const selectedRepositories = JSON.parse(req.body.repositories);
 
-    const octokit = new Octokit();
+    // const octokit = new Octokit();
     for (const repo of selectedRepositories) {
       const [owner, repoName] = repo.split("/");
       try {
@@ -22,7 +21,7 @@ const badges = async (req, res, login, name, email) => {
         if (DEI && DEI.content) {
           deiFilePresent = true;
           // scan repo from here using ./scanner.js
-          bronzeBadge(email, DEI);
+          bronzeBadge(owner, octokit, email, DEI);
         }
       } catch (e) {
         console.error("Error: ", e.message);
