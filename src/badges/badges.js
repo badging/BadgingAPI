@@ -1,5 +1,3 @@
-const { Octokit } = require("@octokit/rest");
-const { scanne, awardBadge } = require("../helpers");
 const bronzeBadge = require("./bronzeBadge");
 
 const badges = async (req, res, login, name, email, octokit) => {

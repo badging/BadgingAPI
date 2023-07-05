@@ -1,6 +1,6 @@
-const augurAPI = require('../helpers/augurAPI')
+// const augurAPI = require("../helpers/augurAPI");
 
-const bronzeBadge = async (id,url,content) => {
+const bronzeBadge = async (id, url, content) => {
   const results = [];
   // Check for specific titles
   const titlesToCheck = [
@@ -22,15 +22,19 @@ const bronzeBadge = async (id,url,content) => {
   }
 
   if (hasAllTitles) {
-    const augur=augurAPI(id,{level:"bronze"},url)
+    /**
+     * augur configs here
+     */
+
+    // const augur=augurAPI(id,{level:"bronze"},url)
+    // console.log(augur)
     // return results
-    console.log(augur)
-    return(results)
+    return results;
   } else {
     results.push(
       "some fields are missing. Please refer to this link for more information"
     );
-    return results
+    return results;
   }
 };
 

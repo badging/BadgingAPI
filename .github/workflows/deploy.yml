@@ -60,6 +60,10 @@ jobs:
             docker stop $(echo $IMAGE_NAME)
             docker rm $(echo $IMAGE_NAME)
             docker run -d \
+            -e CLIENT_ID=${{secrets.CLIENT_ID}} \
+            -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
+            -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+            -e AUGUR_API_KEY=${{ secrets.AUGUR_API_KEY }} \
             -p ${{secrets.PORT}}:${{secrets.PORT}} \
             --restart always \
             --name $(echo $IMAGE_NAME) \

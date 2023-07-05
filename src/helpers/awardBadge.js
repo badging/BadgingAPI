@@ -1,13 +1,13 @@
-const fs = require("fs");
-const path = require("path");
-const badgePath = path.join(__dirname, "../../assets/badge.svg");
+// const fs = require("fs");
+// const path = require("path");
+// const badgePath = path.join(__dirname, "../../assets/badge.svg");
 const badgeLink =
   "https://raw.githubusercontent.com/AllInOpenSource/ProjectBadging/main/src/assets/images/badges/badge.svg";
 
 const awardBadge = async (octokit, owner, repoName) => {
   try {
     // Read the SVG file content
-    const svgContent = fs.readFileSync(badgePath, "utf8");
+    // const svgContent = fs.readFileSync(badgePath, "utf8");
 
     // Read the existing README file content
     const { data: existingFile } = await octokit.rest.repos.getContent({
