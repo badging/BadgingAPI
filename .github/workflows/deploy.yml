@@ -53,18 +53,21 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA, {{ secrets.PORT }}
+          envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA,{{ secrets.PORT }}
           script: |
             # Login to registry
             docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
-            docker stop $(echo $IMAGE_NAME)
-            docker rm $(echo $IMAGE_NAME)
+            if docker inspect $(echo $IMAGE_NAME) >/dev/null 2>&1; then
+              docker stop $(echo $IMAGE_NAME)
+              docker rm $(echo $IMAGE_NAME)
+            fi
             docker run -d \
-            -e CLIENT_ID=${{secrets.CLIENT_ID}} \
-            -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
-            -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-            -e AUGUR_API_KEY=${{ secrets.AUGUR_API_KEY }} \
-            -p ${{secrets.PORT}}:${{secrets.PORT}} \
-            --restart always \
-            --name $(echo $IMAGE_NAME) \
-            $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+              -e CLIENT_ID=${{ secrets.CLIENT_ID }} \
+              -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
+              -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+              -e AUGUR_API_KEY=${{ secrets.AUGUR_API_KEY }} \
+              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+              --restart always \
+              --name $(echo $IMAGE_NAME) \
+              $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
+
