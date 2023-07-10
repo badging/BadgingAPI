@@ -55,6 +55,7 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           envs: IMAGE_NAME,REGISTRY,{{ secrets.DIGITALOCEAN_ACCESS_TOKEN }},GITHUB_SHA,{{ secrets.PORT }}
           script: |
+            echo $GITHUB_SHA
             # Login to registry
             docker login -u ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} -p ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }} registry.digitalocean.com
             if docker inspect $(echo $IMAGE_NAME) >/dev/null 2>&1; then
