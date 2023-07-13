@@ -32,8 +32,7 @@ const scanner = async (name, email, selectedRepos) => {
         }
 
         if (content) {
-          const bronzeResults = await bronzeBadge(id, url, content);
-          results.push("✅", repo, bronzeResults);
+          bronzeBadge(name, email, id, url, content);
         }
       } catch (error) {
         console.error(error);

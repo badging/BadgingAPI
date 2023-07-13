@@ -16,7 +16,7 @@ const mailer = (email, results) => {
     from: "ekaxada@gmail.com",
     to: email,
     subject: "DEI Badging report",
-    text: results.join("\n"),
+    text: results,
   };
 
   // Send the email
