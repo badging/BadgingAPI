@@ -15,25 +15,34 @@ const scanner = async (name, email, selectedRepos) => {
 
         const id = repoResponse.data.id;
         const url = repoResponse.data.html_url;
-        const contentResponse = await octokit.repos.getContent({
-          owner: repo.split("/")[0],
-          repo: repo.split("/")[1],
-          path: "DEI.md",
-        });
-        const content = Buffer.from(
-          contentResponse.data.content,
-          "base64"
-        ).toString();
-        const bronzeResults = await bronzeBadge(id, url, content);
-        results.push("✅", repo, bronzeResults);
+        let content = null;
+        try {
+          const contentResponse = await octokit.repos.getContent({
+            owner: repo.split("/")[0],
+            repo: repo.split("/")[1],
+            path: "DEI.md",
+          });
+          content = Buffer.from(
+            contentResponse.data.content,
+            "base64"
+          ).toString();
+        } catch (error) {
+          console.error(error);
+          results.push("❌", repo, "does not have DEI.md file");
+        }
+
+        if (content) {
+          const bronzeResults = await bronzeBadge(id, url, content);
+          results.push("✅", repo, bronzeResults);
+        }
       } catch (error) {
         console.error(error);
-        // results.push("❌", repo, "does not have DEI.md file");
       }
     }
   } catch (error) {
     console.error("Error:", error.message);
   }
+
   mailer(email, results);
   return results;
 };
