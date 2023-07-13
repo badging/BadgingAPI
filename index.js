@@ -12,8 +12,9 @@ app.use(bodyParser.json());
 
 app.get("/api/login", (req, res) => {
   const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID
-    }&scope=${scopes.join(",")}`;
+  const url = `https://github.com/login/oauth/authorize?client_id=${
+    process.env.CLIENT_ID
+  }&scope=${scopes.join(",")}`;
 
   res.redirect(url);
 });
@@ -65,15 +66,14 @@ app.get("/api/callback", async (req, res) => {
 
     const repoList = repos.map((repo) => repo.full_name);
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       res.status(200).json({
         name,
         username: login,
         email,
         repos: repoList,
       });
-
-    } else if (process.env.NODE_ENV === 'development') {
+    } else if (process.env.NODE_ENV === "development") {
       res.status(200).send(`
       <html>
       <head>
@@ -88,15 +88,15 @@ app.get("/api/callback", async (req, res) => {
           <input type="hidden" name="email" value="${email}">
           <h2>Select Repositories:</h2>
           ${repoList
-          .map(
-            (repo) => `
+            .map(
+              (repo) => `
                 <div>
                   <input type="checkbox" name="repos[]" value="${repo}">
                   <label for="${repo}">${repo}</label>
                 </div>
               `
-          )
-          .join('')}
+            )
+            .join("")}
           <br>
           <input type="submit" value="Submit">
         </form>
@@ -104,8 +104,6 @@ app.get("/api/callback", async (req, res) => {
     </html>
       `);
     }
-
-
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).send("Internal Server Error");

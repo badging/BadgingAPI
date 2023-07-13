@@ -26,9 +26,9 @@ const bronzeBadge = async (id, url, content) => {
      * augur configs here
      */
 
-    const augur=augurAPI(id,"bronze",url)
-    console.log(augur.json())
-    return results
+    const augurResponse = await augurAPI(id, "bronze", url);
+    console.log(augurResponse.status);
+    return results;
   } else {
     results.push(
       "some fields are missing. Please refer to this link for more information"

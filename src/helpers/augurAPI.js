@@ -1,24 +1,33 @@
+const { exec } = require("child_process");
 require("dotenv").config();
 
 const augurAPI = async (id, level, url) => {
   try {
-    const apiUrl = `https://projectbadge.chaoss.io/api/unstable/dei/repo/add?id=${id}&level=${level}&url=${url}`;
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Client ${process.env.AUGUR_API_KEY}`,
-      },
-    });
+    const command = `curl --request POST \
+      --url 'https://projectbadge.chaoss.io/api/unstable/dei/repo/add?id=${id}&level=${level}&url=${encodeURIComponent(
+      url
+    )}' \
+      --header 'Authorization: Client ${process.env.AUGUR_API_KEY}'`;
 
-    if (!response.ok) {
-      throw new Error("Request failed with status: " + response.status);
-    }
+    const { stdout } = await execAsync(command);
 
-    return response;
+    return stdout;
   } catch (error) {
     console.error("Error:", error.message);
     throw error;
   }
+};
+
+const execAsync = (command) => {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({ stdout });
+      }
+    });
+  });
 };
 
 module.exports = augurAPI;
