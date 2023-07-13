@@ -12,9 +12,8 @@ app.use(bodyParser.json());
 
 app.get("/api/login", (req, res) => {
   const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${
-    process.env.CLIENT_ID
-  }&scope=${scopes.join(",")}`;
+  const url = `https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID
+    }&scope=${scopes.join(",")}`;
 
   res.redirect(url);
 });
@@ -64,15 +63,49 @@ app.get("/api/callback", async (req, res) => {
       });
     }
 
-    // let repoList = repos.filter(repo=>repo.permissions.admin === true)
     const repoList = repos.map((repo) => repo.full_name);
 
-    res.status(200).json({
-      name,
-      username: login,
-      email,
-      repos: repoList,
-    });
+    if (process.env.NODE_ENV === 'production') {
+      res.status(200).json({
+        name,
+        username: login,
+        email,
+        repos: repoList,
+      });
+
+    } else if (process.env.NODE_ENV === 'development') {
+      res.status(200).send(`
+      <html>
+      <head>
+        <title>Repo List</title>
+      </head>
+      <body>
+        <h1>Welcome ${name}</h1>
+        <h2>Username: ${login}</h2>
+        <h2>Email: ${email}</h2>
+        <form action="/api/repos-to-badge" method="post">
+          <input type="hidden" name="name" value="${name}">
+          <input type="hidden" name="email" value="${email}">
+          <h2>Select Repositories:</h2>
+          ${repoList
+          .map(
+            (repo) => `
+                <div>
+                  <input type="checkbox" name="repos[]" value="${repo}">
+                  <label for="${repo}">${repo}</label>
+                </div>
+              `
+          )
+          .join('')}
+          <br>
+          <input type="submit" value="Submit">
+        </form>
+      </body>
+    </html>
+      `);
+    }
+
+
   } catch (error) {
     console.error("Error:", error.message);
     res.status(500).send("Internal Server Error");
@@ -88,6 +121,6 @@ app.post("/api/repos-to-badge", async (req, res) => {
   res.status(200).json({ results });
 });
 
-app.listen(4040, () => {
-  console.log("Server started on port 4040");
+app.listen(process.env.PORT, () => {
+  console.log(`server listening on port ${process.env.PORT}`);
 });

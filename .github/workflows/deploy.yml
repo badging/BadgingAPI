@@ -65,10 +65,6 @@ jobs:
               docker stop ${{ env.IMAGE_NAME }}
               docker rm ${{ env.IMAGE_NAME }}
             fi
-      - name: Get image digest
-        run: |
-          DIGEST=$(doctl registry repository get $REGISTRY/$IMAGE_NAME:$GITHUB_SHA --format Digest --no-header)
-          echo "IMAGE_DIGEST=$DIGEST" >> $GITHUB_ENV
       - name: Deploy Docker image to DigitalOcean Droplet
         uses: appleboy/ssh-action@master
         with:
@@ -76,6 +72,8 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             docker run -d \
               -e CLIENT_ID=${{ secrets.CLIENT_ID }} \
               -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
@@ -84,4 +82,4 @@ jobs:
               -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
               --restart always \
               --name ${{ env.IMAGE_NAME }} \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ env.IMAGE_DIGEST }}
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

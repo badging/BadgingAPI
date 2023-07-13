@@ -1,17 +1,18 @@
-const axios = require("axios");
 require("dotenv").config();
 
 const augurAPI = async (id, level, url) => {
   try {
-    const response = await axios.post(
-      "https://projectbadge.chaoss.io/api/unstable/dei/repo",
-      { id, level, url },
-      {
-        headers: {
-          Authorization: process.env.AUGUR_API_KEY,
-        },
-      }
-    );
+    const apiUrl = `https://projectbadge.chaoss.io/api/unstable/dei/repo/add?id=${id}&level=${level}&url=${url}`;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Client ${process.env.AUGUR_API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Request failed with status: " + response.status);
+    }
 
     return response;
   } catch (error) {
