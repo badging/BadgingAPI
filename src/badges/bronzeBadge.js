@@ -1,6 +1,5 @@
 const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
-const emailTemplate = require("../helpers/emailTemplate");
 
 const bronzeBadge = async (name, email, id, url, content) => {
   const results = [];
@@ -30,25 +29,28 @@ const bronzeBadge = async (name, email, id, url, content) => {
     const markdownLink =
       "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg)";
     const htmlLink =
-      '<img src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg" alt="Project Badging Bronze Badge" />';
+      '<img src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg" alt="DEI Badging Bronze Badge" />';
     const badgeImageUrl =
       "https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg";
 
-    const emailContent = await emailTemplate(
-      name,
-      "Bronze",
+    const badgeName = "Bronze";
+
+    const recipientName = name;
+
+    // send email
+    await mailer(
+      email,
+      recipientName,
+      badgeName,
       badgeImageUrl,
       markdownLink,
       htmlLink
     );
-
-    // send email
-    await mailer(email, emailContent);
   } else {
     results.push(
       "some fields are missing. Please refer to this link for more information"
     );
-    await mailer(email, results.join("\n"));
+    await mailer(email, results);
   }
 };
 
