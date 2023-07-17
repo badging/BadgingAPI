@@ -4,11 +4,13 @@ const axios = require("axios");
 require("dotenv").config();
 const bodyParser = require("body-parser");
 const scanner = require("./src/scanner.js");
+const cors = require("cors");
 
 const app = express();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
 
 app.get("/api/login", (req, res) => {
   const scopes = ["user", "repo"];
