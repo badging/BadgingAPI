@@ -10,7 +10,13 @@ const app = express();
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    optionsSuccessStatus: 200,
+  })
+);
 
 app.get("/api/login", (req, res) => {
   const scopes = ["user", "repo"];
@@ -22,6 +28,7 @@ app.get("/api/login", (req, res) => {
 });
 
 app.get("/api/callback", async (req, res) => {
+  console.log(req);
   try {
     const { code } = req.query;
     const {
@@ -107,8 +114,7 @@ app.get("/api/callback", async (req, res) => {
       `);
     }
   } catch (error) {
-    console.error("Error:", error.message);
-    res.status(500).send("Internal Server Error");
+    res.status(500).send(error.message);
   }
 });
 
