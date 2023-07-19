@@ -75,11 +75,8 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             docker run -d \
-              -e CLIENT_ID=${{ secrets.CLIENT_ID }} \
-              -e CLIENT_SECRET=${{ secrets.CLIENT_SECRET }} \
-              -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
-              -e AUGUR_API_KEY=${{ secrets.AUGUR_API_KEY }} \
-              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
-              --restart always \
-              --name ${{ env.IMAGE_NAME }} \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+            --env-file /home/${{ secrets.USERNAME }}/.env \
+            --restart=always \
+            --name ${{ env.IMAGE_NAME }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
