@@ -27,10 +27,10 @@ app.get("/api/login", (req, res) => {
   res.redirect(url);
 });
 
-app.get("/api/callback", async (req, res) => {
+app.post("/api/callback", async (req, res) => {
   console.log(req);
   try {
-    const { code } = req.query;
+    const { code } = req.body;
     const {
       data: { access_token },
     } = await axios.post(
