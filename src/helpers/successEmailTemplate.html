@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333333;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      p {
+        color: #555555;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Congratulations on Your Achievement!</h1>
+      <p>Dear {{recipientName}},</p>
+      <p>
+        We are thrilled to inform you that your recent review submission of your
+        Open Source Project has been recognized and rewarded a
+        <strong>{{badgeName}}</strong> badge.
+      </p>
+      <p>
+        For more details, you can access the badge using the following links:
+      </p>
+      <p>Here is the Markdown Badge Link:</p>
+      <code>{{markdownLink}}</code>
+      <p>Here is the HTML Link:</p>
+      <code>{{htmlLink}}</code>
+      <p>
+        Thank you for your continuous effort in promoting Diversity, Equity, and
+        Inclusion.
+      </p>
+      <p>Best regards,</p>
+      <p>The DEI Badging Team</p>
+    </div>
+  </body>
+</html>

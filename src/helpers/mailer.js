@@ -7,7 +7,6 @@ const mailer = async (
   email,
   recipientName,
   badgeName,
-  badgeImageUrl,
   markdownLink,
   htmlLink,
   results
@@ -24,23 +23,32 @@ const mailer = async (
   let mailOptions = {};
 
   if (results) {
-    // Define the email options with text content
-    mailOptions = {
-      from: "ekaxada@gmail.com",
-      to: email,
-      subject: "DEI Badging report",
-      text: results.join("\n"),
-    };
-  } else {
     // Read the HTML template file
-    const templatePath = path.resolve(__dirname, "./emailTemplate.html");
+    const templatePath = path.resolve(__dirname, "./failureEmailTemplate.html");
     const html = fs.readFileSync(templatePath, { encoding: "utf-8" });
 
     // Replace placeholders with dynamic values in the HTML template
     const replacedHTML = await html
       .replace("{{recipientName}}", recipientName)
       .replace("{{badgeName}}", badgeName)
-      .replace("{{badgeImageUrl}}", badgeImageUrl)
+      .replace("{{results}}", results);
+
+    // Define the email options with HTML content
+    mailOptions = {
+      from: "ekaxada@gmail.com",
+      to: email,
+      subject: "DEI Badging report",
+      html: replacedHTML,
+    };
+  } else {
+    // Read the HTML template file
+    const templatePath = path.resolve(__dirname, "./successEmailTemplate.html");
+    const html = fs.readFileSync(templatePath, { encoding: "utf-8" });
+
+    // Replace placeholders with dynamic values in the HTML template
+    const replacedHTML = await html
+      .replace("{{recipientName}}", recipientName)
+      .replace("{{badgeName}}", badgeName)
       .replace("{{markdownLink}}", markdownLink)
       .replace("{{htmlLink}}", htmlLink);
 

@@ -27,23 +27,21 @@ const scanner = async (name, email, selectedRepos) => {
             "base64"
           ).toString();
         } catch (error) {
-          console.error(error);
-          results.push("❌", repo, "does not have DEI.md file");
+          results.push("DEI.md file");
+          mailer(email, name, "Bronze", null, null, results.join("\n"));
+          return results;
         }
 
         if (content) {
           bronzeBadge(name, email, id, url, content);
         }
       } catch (error) {
-        console.error(error);
+        console.error(error.message);
       }
     }
   } catch (error) {
     console.error("Error:", error.message);
   }
-
-  mailer(email, results);
-  return results;
 };
 
 module.exports = scanner;

@@ -43,25 +43,33 @@
   </head>
   <body>
     <div class="container">
-      <h1>Congratulations on Your Achievement!</h1>
+      <h1>Badging Updates</h1>
       <p>Dear {{recipientName}},</p>
       <p>
-        We are thrilled to inform you that your recent review submission of your
-        Open Source Project has been recognized and rewarded a
+        We hope this email finds you well. We appreciate your submission of the
+        Open Source Project for review to be considered for the
         <strong>{{badgeName}}</strong> badge.
       </p>
-      <div class="badge-container">
-        <img class="badge-image" src="{{badgeImageUrl}}" alt="{{badgeName}}" />
-      </div>
-      <p>Once again, congratulations on this well-deserved Badge!</p>
       <p>
-        For more details, you can access the badge using the following links:
+        Unfortunately, we couldn't issue the badge due to missing information.
+        The evaluation of your project requires the following information to be
+        provided:
       </p>
-      <p>Here is the Markdown Badge Link:</p>
-      <pre><code>{{markdownLink}}</code></pre>
-      <p>Here is the HTML Link:</p>
-      <pre><code>{{htmlLink}}</code></pre>
-      <p>Thank you for your ongoing DEI efforts</p>
+      <ul>
+        <li>{{results}}</li>
+      </ul>
+      <p>
+        Once you have the missing information, please resubmit your project for
+        review, and we'll be happy to reconsider it for the badge issuance.
+      </p>
+      <p>
+        If you have any questions or need further assistance, feel free to reach
+        out to our DEI Badging Team.
+      </p>
+      <p>
+        Thank you for your continuous effort in promoting Diversity, Equity, and
+        Inclusion.
+      </p>
       <p>Best regards,</p>
       <p>The DEI Badging Team</p>
     </div>
