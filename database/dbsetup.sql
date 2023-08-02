@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS project_badging;
+CREATE DATABASE IF NOT EXISTS project_badging
 
-USE project_badging;
+-- USE project_badging
 
 -- user table
 CREATE TABLE IF NOT EXISTS users (
