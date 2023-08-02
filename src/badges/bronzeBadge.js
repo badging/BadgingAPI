@@ -24,8 +24,6 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
   if (!hasAllTitles) {
     mailer(email, name, "Bronze", null, null, results.join("\n"));
   } else if (hasAllTitles) {
-    const { status } = await augurAPI(id, "bronze", url);
-    console.log(status);
     // email content
     const markdownLink =
       "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg)";
@@ -35,8 +33,12 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
     // send email
     mailer(email, name, "Bronze", markdownLink, htmlLink);
 
-    // save repo to database
-    await saveRepo(id, DEICommitSHA, url, "Bronze", markdownLink, name);
+    // save repo to database and return repo id
+    const repo_id = await saveRepo(id, DEICommitSHA, url, "Bronze", markdownLink, name);
+
+    // use repo id in augur api call
+    const { status } = await augurAPI(repo_id, "bronze", url);
+    console.log(status)
   }
 };
 

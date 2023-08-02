@@ -64,10 +64,8 @@ const saveRepo = async (githubRepoId, DEICommitSHA, repoLink, badgeType, attachm
             user: user._id
         })
 
-        await repo.save().then((repo) => {
-            console.log('Repo created:', repo);
-        }
-        )
+        const savedRepo = await repo.save();
+        return savedRepo._id.valueOf();
     } catch (error) {
         console.error('Error saving repo:', error);
 
