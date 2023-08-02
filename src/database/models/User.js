@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   login: { type: String, required: true },
@@ -7,6 +7,6 @@ const userSchema = new mongoose.Schema({
   githubId: { type: Number, required: true },
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

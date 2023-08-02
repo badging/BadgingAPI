@@ -3,7 +3,7 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const routes = require("./src/routes/routes.js");
-const {dbconnect} = require("./src/database/dblogic.js");
+const { dbconnect } = require("./src/database/dblogic.js");
 
 const app = express();
 app.use(express.static("public"));
@@ -17,7 +17,6 @@ app.use(
   })
 );
 
-
 // ROUTING
 app.get("/api/login", routes.login);
 
@@ -28,7 +27,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.post("/api/repos-to-badge", routes.reposToBadge);
-
 
 (async () => {
   try {
@@ -41,4 +39,3 @@ app.post("/api/repos-to-badge", routes.reposToBadge);
     console.log(error);
   }
 })();
-
