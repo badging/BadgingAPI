@@ -16,7 +16,7 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
 
   for (const title of titlesToCheck) {
     if (!content.includes(title)) {
-      results.push(`${title}`);
+      results.push(`${title} is missing`);
       hasAllTitles = false;
     }
   }
