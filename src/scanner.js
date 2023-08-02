@@ -13,6 +13,8 @@ const scanner = async (name, email, selectedRepos) => {
           repo: repo.split("/")[1],
         });
 
+        console.log(repoResponse.data);
+
         const id = repoResponse.data.id;
         const url = repoResponse.data.html_url;
         let content = null;
@@ -22,6 +24,8 @@ const scanner = async (name, email, selectedRepos) => {
             repo: repo.split("/")[1],
             path: "DEI.md",
           });
+
+          const DEIcommitSHA = contentResponse.data.sha;
           content = Buffer.from(
             contentResponse.data.content,
             "base64"
@@ -33,7 +37,7 @@ const scanner = async (name, email, selectedRepos) => {
         }
 
         if (content) {
-          bronzeBadge(name, email, id, url, content);
+          bronzeBadge(name, email, id, url, content, DEIcommitSHA);
         }
       } catch (error) {
         console.error(error.message);

@@ -1,5 +1,7 @@
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
+const scanner = require("../scanner.js");
+const { saveUser, saveRepo } = require("../database/dblogic.js");
 
 
 /**
@@ -14,6 +16,12 @@ const login = (req, res) => {
 
   res.redirect(url);
 }
+
+/**
+ * Receives the code from GitHub and uses it to request an access token.
+ * @param {*} req - object containing the client req details.
+ * @param {*} res - object used to send a response.
+ */
 
 const productionCallback = async (req, res) => {
   try {
@@ -38,8 +46,11 @@ const productionCallback = async (req, res) => {
 
     // Authenticated user details
     const {
-      data: { login, name, email },
+      data: { login, name, email, id: githubId },
     } = await octokit.users.getAuthenticated();
+
+    // save user to database
+    await saveUser(login, name, email, githubId);
 
     // Public repos they maintain, administer, or own
     let repos = [];
@@ -96,8 +107,11 @@ const developmentCallback = async (req, res) => {
 
     // Authenticated user details
     const {
-      data: { login, name, email },
+      data: { login, name, email, id: githubId },
     } = await octokit.users.getAuthenticated();
+
+    // save user to database
+    await saveUser(login, name, email, githubId);
 
     // Public repos they maintain, administer, or own
     let repos = [];

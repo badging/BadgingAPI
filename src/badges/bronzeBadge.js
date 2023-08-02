@@ -1,7 +1,7 @@
 const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
 
-const bronzeBadge = async (name, email, id, url, content) => {
+const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
   // Check for specific titles
   const titlesToCheck = [
     "Project Access",
@@ -25,13 +25,6 @@ const bronzeBadge = async (name, email, id, url, content) => {
   } else {
     const { status } = await augurAPI(id, "bronze", url);
     console.log(status);
-  }
-
-  if (hasAllTitles) {
-    // configure Augur API
-    const augurResponse = await augurAPI(id, "bronze", url);
-    console.log(augurResponse.status);
-
     // email content
     const markdownLink =
       "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg)";
@@ -40,6 +33,9 @@ const bronzeBadge = async (name, email, id, url, content) => {
 
     // send email
     mailer(email, name, "Bronze", markdownLink, htmlLink);
+
+    // save repo to database
+    await saveRepo(id, url, "bronze");
   }
 };
 
