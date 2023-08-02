@@ -1,8 +1,7 @@
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
 const scanner = require("../scanner.js");
-const { saveUser, saveRepo } = require("../database/dblogic.js");
-
+const { saveUser } = require("../database/dblogic.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -11,11 +10,12 @@ const { saveUser, saveRepo } = require("../database/dblogic.js");
  */
 const login = (req, res) => {
   const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID
-    }&scope=${scopes.join(",")}`;
+  const url = `https://github.com/login/oauth/authorize?client_id=${
+    process.env.CLIENT_ID
+  }&scope=${scopes.join(",")}`;
 
   res.redirect(url);
-}
+};
 
 /**
  * Receives the code from GitHub and uses it to request an access token.
@@ -82,7 +82,7 @@ const productionCallback = async (req, res) => {
   } catch (error) {
     res.status(500).send(error.message);
   }
-}
+};
 
 const developmentCallback = async (req, res) => {
   try {
@@ -148,15 +148,15 @@ const developmentCallback = async (req, res) => {
             <input type="hidden" name="email" value="${email}">
             <h2>Select Repositories:</h2>
             ${repoList
-        .map(
-          (repo) => `
+              .map(
+                (repo) => `
                   <div>
                     <input type="checkbox" name="repos[]" value="${repo}">
                     <label for="${repo}">${repo}</label>
                   </div>
                 `
-        )
-        .join("")}
+              )
+              .join("")}
             <br>
             <input type="submit" value="Submit">
           </form>
@@ -166,7 +166,7 @@ const developmentCallback = async (req, res) => {
   } catch (error) {
     res.status(500).send(error.message);
   }
-}
+};
 
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
@@ -175,11 +175,11 @@ const reposToBadge = async (req, res) => {
   // Process the selected repos as needed
   const results = await scanner(name, email, selectedRepos);
   res.status(200).json({ results });
-}
+};
 
 module.exports = {
   login,
   productionCallback,
   developmentCallback,
-  reposToBadge
-}
+  reposToBadge,
+};

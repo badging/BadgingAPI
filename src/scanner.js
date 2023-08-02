@@ -1,7 +1,7 @@
 const { Octokit } = require("@octokit/rest");
 const mailer = require("./helpers/mailer.js");
 const bronzeBadge = require("./badges/bronzeBadge.js");
-const Repo  = require("./database/models/Repo.js");
+const Repo = require("./database/models/Repo.js");
 
 const scanner = async (name, email, selectedRepos) => {
   const octokit = new Octokit();
@@ -17,7 +17,8 @@ const scanner = async (name, email, selectedRepos) => {
 
         const id = repoResponse.data.id;
         const url = repoResponse.data.html_url;
-        let DEICommitSHA, content = null;
+        let DEICommitSHA,
+          content = null;
 
         try {
           const contentResponse = await octokit.repos.getContent({

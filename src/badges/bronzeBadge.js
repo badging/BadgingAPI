@@ -1,6 +1,6 @@
 const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
-const { saveRepo } = require("../database/dblogic")
+const { saveRepo } = require("../database/dblogic");
 
 const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
   // Check for specific titles
@@ -34,11 +34,18 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
     mailer(email, name, "Bronze", markdownLink, htmlLink);
 
     // save repo to database and return repo id
-    const repo_id = await saveRepo(id, DEICommitSHA, url, "Bronze", markdownLink, name);
+    const repo_id = await saveRepo(
+      id,
+      DEICommitSHA,
+      url,
+      "Bronze",
+      markdownLink,
+      name
+    );
 
     // use repo id in augur api call
     const { status } = await augurAPI(repo_id, "bronze", url);
-    console.log(status)
+    console.log(status);
   }
 };
 
