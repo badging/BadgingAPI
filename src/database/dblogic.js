@@ -20,22 +20,33 @@ const dbconnect = async () => {
 
 // save user to database
 const saveUser = async (login, name, email, githubId) => {
-    const user = new User({
-        login,
-        name,
-        email,
-        githubId
-    });
-    await user.save()
-        .then((user) => {
-            return user._id;
-            console.log(user._id)
-            console.log('User created:', user);
-        })
-        .catch((error) => {
-            console.error('Error creating user:', error);
+    try {
+      // Find the user with the provided GitHub ID
+      let user = await User.findOne({ githubId });
+  
+      if (!user) {
+        // If user doesn't exist, create a new one
+        user = new User({
+          login,
+          name,
+          email,
+          githubId,
         });
-}
+      } else {
+        // Update name, email, and username (login) if they are different
+        if (user.name !== name) user.name = name;
+        if (user.email !== email) user.email = email;
+        if (user.login !== login) user.login = login;
+      }
+  
+      await user.save().then((user) => {
+        console.log('User created:', user);
+        });
+    } catch (error) {
+      console.error('Error saving user:', error);
+    }
+  };
+
 
 // save repo to database
 const saveRepo = async (githubRepoId, DEICommitSHA, repoLink, badgeType, attachment, user) => {
