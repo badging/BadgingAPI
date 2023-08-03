@@ -2,6 +2,7 @@ const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
 const scanner = require("../scanner.js");
 const { saveUser } = require("../database/dblogic.js");
+const Repo = require("../database/models/Repo.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -177,9 +178,19 @@ const reposToBadge = async (req, res) => {
   res.status(200).json({ results });
 };
 
+const badgedRepos = async (req, res) => {
+  try {
+    const repos = await Repo.find({}, "-DEICommitSHA");
+    res.json(repos);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving repos", error });
+  }
+};
+
 module.exports = {
   login,
   productionCallback,
   developmentCallback,
   reposToBadge,
+  badgedRepos,
 };
