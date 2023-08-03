@@ -28,6 +28,8 @@ if (process.env.NODE_ENV === "production") {
 
 app.post("/api/repos-to-badge", routes.reposToBadge);
 
+app.get("/api/badgedRepos", routes.badgedRepos);
+
 (async () => {
   try {
     await dbconnect().then(() => {
