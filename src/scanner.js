@@ -1,7 +1,7 @@
 const { Octokit } = require("@octokit/rest");
 const mailer = require("./helpers/mailer.js");
 const bronzeBadge = require("./badges/bronzeBadge.js");
-const Repo = require("./database/models/Repo.js");
+const Repo = require("../database/models/repo.model");
 
 const scanner = async (name, email, selectedRepos) => {
   const octokit = new Octokit();
@@ -39,7 +39,9 @@ const scanner = async (name, email, selectedRepos) => {
         }
 
         // Check if the repo was badged before
-        const existingRepo = await Repo.findOne({ githubRepoId: id });
+        const existingRepo = await Repo.findOne({
+          where: { githubRepoId: id },
+        });
 
         if (content) {
           if (existingRepo) {

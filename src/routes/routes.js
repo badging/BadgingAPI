@@ -1,8 +1,8 @@
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
 const scanner = require("../scanner.js");
-const { saveUser } = require("../database/dblogic.js");
-const Repo = require("../database/models/Repo.js");
+const saveUser = require("../../database/controllers/user.controller.js");
+const Repo = require("../../database/models/repo.model.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -180,8 +180,24 @@ const reposToBadge = async (req, res) => {
 
 const badgedRepos = async (req, res) => {
   try {
-    const repos = await Repo.find({}, "-DEICommitSHA");
-    res.json(repos);
+    // Use Sequelize to find all repos, excluding the DEICommitSHA field
+    const repos = await Repo.findAll({
+      attributes: { exclude: ["DEICommitSHA"] },
+    });
+
+    // Extract the relevant information from the repos
+    const formattedRepos = repos.map((repo) => ({
+      id: repo.id,
+      githubRepoId: repo.githubRepoId,
+      repoLink: repo.repoLink,
+      badgeType: repo.badgeType,
+      attachment: repo.attachment,
+      createdAt: repo.createdAt,
+      updatedAt: repo.updatedAt,
+      userId: repo.userId,
+    }));
+
+    res.json(formattedRepos);
   } catch (error) {
     res.status(500).json({ message: "Error retrieving repos", error });
   }
