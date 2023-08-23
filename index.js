@@ -3,7 +3,7 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const routes = require("./src/routes/routes.js");
-const { dbconnect } = require("./src/database/dblogic.js");
+const dbconnect = require("./database/helpers/dbconnect");
 
 const app = express();
 app.use(express.static("public"));
