@@ -3,15 +3,11 @@ const dbconnect = async () => {
   try {
     await sequelize.authenticate();
     try {
-      await sequelize.sync();
-      /**
-       * to drop all tables and re-create them use:
-       *
-       * await sequelize.sync({ force: true });
-       *
-       * this is useful during development when model structure is
-       * changing frequently
-       */
+      if (process.env.NODE_ENV === "development") {
+        await sequelize.sync({ force: true });
+      } else {
+        await sequelize.sync();
+      }
     } catch (error) {
       console.error(error);
     }
