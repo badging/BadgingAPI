@@ -24,7 +24,10 @@ const mailer = async (
 
   if (results) {
     // Read the HTML template file
-    const templatePath = path.resolve(__dirname, "./failureEmailTemplate.html");
+    const templatePath = path.resolve(
+      __dirname,
+      "./email_templates/failure.html"
+    );
     const html = fs.readFileSync(templatePath, { encoding: "utf-8" });
 
     // Replace placeholders with dynamic values in the HTML template
@@ -42,7 +45,10 @@ const mailer = async (
     };
   } else {
     // Read the HTML template file
-    const templatePath = path.resolve(__dirname, "./successEmailTemplate.html");
+    const templatePath = path.resolve(
+      __dirname,
+      "./email_templates/success.html"
+    );
     const html = fs.readFileSync(templatePath, { encoding: "utf-8" });
 
     // Replace placeholders with dynamic values in the HTML template

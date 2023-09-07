@@ -5,7 +5,7 @@
     "plugin:import/errors",
     "plugin:jsx-a11y/recommended"
   ],
-  "plugins": ["prettier", "jsx-a11y", "import"],
+  "plugins": ["prettier", "jsx-a11y", "import", "html"],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
