@@ -10,7 +10,7 @@
       .container {
         max-width: 600px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 30px;
         background-color: #ffffff;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -22,52 +22,105 @@
         margin-bottom: 20px;
       }
 
-      p {
+      .email_content {
         color: #555555;
         font-size: 16px;
         line-height: 1.5;
       }
 
-      .badge-container {
-        display: flex;
-        align-items: center;
-        margin-top: 30px;
+      ul {
+        color: #555555;
       }
 
-      .badge-image {
-        width: 80px;
-        height: 80px;
-        margin-right: 20px;
+      #logo {
+        margin-bottom: 40px;
+      }
+
+      #carousel {
+        width: 100%;
+        margin-bottom: 40px;
+      }
+
+      footer {
+        background-color: #0d1117;
+        text-align: center;
+        color: #ffffff;
+        padding: 40px 0;
+      }
+
+      footer a {
+        color: #06f395;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
+
   <body>
     <div class="container">
+      <header>
+        <img
+          src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/images/logo.svg"
+          alt="badging logo"
+          id="logo"
+        />
+        <img
+          src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/images/carousel.svg"
+          alt="email carousel"
+          id="carousel"
+        />
+      </header>
       <h1>Badging Updates</h1>
-      <p>Dear {{recipientName}},</p>
-      <p>
+      <p class="email_content">
+        Dear {{recipientName}},
+        <br />
+        <br />
         We hope this email finds you well. We appreciate your submission of the
         Open Source Project for review to be considered for the
         <strong>{{badgeName}}</strong> badge.
+        <br />
+        <br />
+        Unfortunately, we couldn't issue the badge due to the following;
       </p>
-      <p>Unfortunately, we couldn't issue the badge due to the following;</p>
       <ul>
         <li>{{results}}</li>
       </ul>
-      <p>
+      <p class="email_content">
         Once you have the missing information, please resubmit your project for
         review, and we'll be happy to reconsider it for the badge issuance.
-      </p>
-      <p>
+        <br />
+        <br />
         If you have any questions or need further assistance, feel free to reach
         out to our DEI Badging Team.
-      </p>
-      <p>
+        <br />
+        <br />
         Thank you for your continuous effort in promoting Diversity, Equity, and
         Inclusion.
+        <br />
+        <br />
+        Best regards,
+        <br />
+        The DEI Badging Team
       </p>
-      <p>Best regards,</p>
-      <p>The DEI Badging Team</p>
+      <footer>
+        <p>
+          Contact us at
+          <a href="mailto:info@badging.allinopensource.org"
+            >info@badging.allinopensource.org</a
+          >
+          <br />
+          <a href="https://badging.allinopensource.org/about">About Us</a> |
+          <a href="#">Privacy Policy</a> | <a href="#">Terms and Conditions</a>
+          <br />
+          All In & CHAOSS © 2023
+          <br />
+          <br />
+          Click here to <a href="#">Unsubscribe</a>
+        </p>
+      </footer>
     </div>
   </body>
 </html>
