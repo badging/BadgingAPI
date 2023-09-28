@@ -3,12 +3,11 @@ const dbconnect = async () => {
   try {
     await sequelize.authenticate();
     try {
-      // if (process.env.NODE_ENV === "development") {
-      //   await sequelize.sync({ force: true });
-      // } else {
-      //   await sequelize.sync();
-      // }
-      await sequelize.sync({ force: true });
+      if (process.env.NODE_ENV === "development") {
+        await sequelize.sync({ force: true });
+      } else {
+        await sequelize.sync();
+      }
     } catch (error) {
       console.error(error);
     }
