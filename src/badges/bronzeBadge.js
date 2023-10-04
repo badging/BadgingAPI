@@ -26,9 +26,9 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
   } else if (hasAllTitles) {
     // email content
     const markdownLink =
-      "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg)";
+      "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/badges/bronze-badge.svg)";
     const htmlLink =
-      "&lt;img src=&quot;https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/assets/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
+      "&lt;img src=&quot;https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
 
     // send email
     mailer(email, name, "Bronze", markdownLink, htmlLink);
