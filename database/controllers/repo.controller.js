@@ -24,7 +24,7 @@ const saveRepo = async (
       repoLink,
       badgeType,
       attachment,
-      UserId: user.id,
+      userId: user.id,
     });
 
     return repo.id;

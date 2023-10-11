@@ -24,9 +24,16 @@ const Repo = sequelize.define("repos", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  userId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: "users",
+      key: "id",
+    },
+  },
 });
 
 // Define associations (foreign key)
-Repo.belongsTo(User);
+Repo.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = Repo;
