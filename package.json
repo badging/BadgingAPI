@@ -21,7 +21,7 @@
     "url": "git+https://github.com/AllInOpenSource/BadgingAPI.git"
   },
   "author": "CHAOSS/AllInOpenSource",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/AllInOpenSource/BadgingAPI/issues"
   },
