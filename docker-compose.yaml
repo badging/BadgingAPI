@@ -1,0 +1,12 @@
+services:
+  db:
+    container_name: badging-db
+    image: mysql:8
+    volumes:
+      - ./tmp/mysql:/var/lib/mysql
+    user: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "rootpwd"
+      MYSQL_DATABASE: "badging_dev"
+    ports:
+      - "3306:3306"
