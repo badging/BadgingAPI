@@ -136,4 +136,3 @@ report*
 deploy.tests.yml
 
 /tmp/mysql/*
-!/tmp/mysql/.gitkeep
