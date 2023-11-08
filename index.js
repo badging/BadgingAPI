@@ -1,4 +1,6 @@
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+const dotenv = require("dotenv");
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+dotenv.config({ path: `.env.${process.env.NODE_ENV}.local`, override: true });
 
 const cors = require("cors");
 const dbconnect = require("./database/helpers/dbconnect");
