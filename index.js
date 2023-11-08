@@ -1,9 +1,10 @@
-const express = require("express");
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
-const bodyParser = require("body-parser");
+
 const cors = require("cors");
-const routes = require("./src/routes/routes.js");
 const dbconnect = require("./database/helpers/dbconnect");
+const express = require("express");
+const bodyParser = require("body-parser");
+const routes = require("./src/routes/index.js");
 
 const app = express();
 app.use(express.static("public"));
@@ -17,18 +18,7 @@ app.use(
   })
 );
 
-// ROUTING
-app.get("/api/login", routes.login);
-
-if (process.env.NODE_ENV === "production") {
-  app.post("/api/callback", routes.productionCallback);
-} else if (process.env.NODE_ENV === "development") {
-  app.get("/api/callback", routes.developmentCallback);
-}
-
-app.post("/api/repos-to-badge", routes.reposToBadge);
-
-app.get("/api/badgedRepos", routes.badgedRepos);
+routes.setupRoutes(app);
 
 (async () => {
   try {

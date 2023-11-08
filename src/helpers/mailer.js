@@ -11,6 +11,21 @@ const mailer = async (
   htmlLink,
   results
 ) => {
+  if (
+    !process.env.EMAIL_HOST ||
+    !process.env.EMAIL_HOST ||
+    !process.env.EMAIL_USERNAME ||
+    !process.env.EMAIL_PASSWORD
+  ) {
+    console.error("Email service is not configured");
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`Sending email to '${email}'`, results);
+    }
+
+    return;
+  }
+
   // Create a transporter using your email service provider's SMTP settings
   const transporter = nodemailer.createTransport({
     service: "Gmail",
