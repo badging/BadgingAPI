@@ -39,7 +39,10 @@ const handleOAuthCallback = async (req, res) => {
     return;
   }
 
-  if (process.env.NODE_ENV === "production") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.RETURN_JSON_ON_LOGIN
+  ) {
     res.status(200).json({
       name: user_info.name,
       username: user_info.login,
@@ -88,7 +91,10 @@ const handleOAuthCallback = async (req, res) => {
  * @param {*} app Express application instance
  */
 const setupGitHubRoutes = (app) => {
-  if (process.env.NODE_ENV === "production") {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.RETURN_JSON_ON_LOGIN
+  ) {
     app.post("/api/callback/github", handleOAuthCallback);
   } else if (process.env.NODE_ENV === "development") {
     app.get("/api/callback/github", handleOAuthCallback);
