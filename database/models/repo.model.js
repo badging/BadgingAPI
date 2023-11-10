@@ -6,7 +6,11 @@ const User = require("./user.model");
 const Repo = sequelize.define("repos", {
   githubRepoId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
+  },
+  gitlabRepoId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
   },
   DEICommitSHA: {
     type: DataTypes.STRING,
@@ -26,6 +30,7 @@ const Repo = sequelize.define("repos", {
   },
   userId: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     references: {
       model: "users",
       key: "id",

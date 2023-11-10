@@ -2,7 +2,16 @@ const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
 const saveRepo = require("../../database/controllers/repo.controller");
 
-const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
+const bronzeBadge = async (
+  userId,
+  userName,
+  email,
+  githubRepoId,
+  gitlabRepoId,
+  url,
+  content,
+  DEICommitSHA
+) => {
   // Check for specific titles
   const titlesToCheck = [
     "Project Access",
@@ -22,7 +31,7 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
   }
 
   if (!hasAllTitles) {
-    mailer(email, name, "Bronze", null, null, results.join("\n"));
+    mailer(email, userName, "Bronze", null, null, results.join("\n"));
   } else if (hasAllTitles) {
     // email content
     const markdownLink =
@@ -31,16 +40,17 @@ const bronzeBadge = async (name, email, id, url, content, DEICommitSHA) => {
       "&lt;img src=&quot;https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
 
     // send email
-    mailer(email, name, "Bronze", markdownLink, htmlLink);
+    mailer(email, userName, "Bronze", markdownLink, htmlLink);
 
     // save repo to database and return repo id
     const repo_id = await saveRepo(
-      id,
+      githubRepoId,
+      gitlabRepoId,
       DEICommitSHA,
       url,
       "Bronze",
       markdownLink,
-      name
+      userId
     );
 
     // use repo id in augur api call
