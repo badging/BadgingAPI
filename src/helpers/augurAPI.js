@@ -1,4 +1,5 @@
 const axios = require("axios");
+require("dotenv").config();
 
 const augurAPI = async (id, level, url) => {
   if (!process.env.AUGUR_API_KEY) {
