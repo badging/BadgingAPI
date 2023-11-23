@@ -1,9 +1,9 @@
 const express = require("express");
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const routes = require("./src/routes/routes.js");
 const dbconnect = require("./database/helpers/dbconnect");
+require("dotenv").config();
 
 const app = express();
 app.use(express.static("public"));
