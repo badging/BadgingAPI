@@ -11,22 +11,23 @@
     "precommit": "lint-staged",
     "format": "npm run prettier:fix && npm run lint:fix",
     "test": "npm run test",
-    "dev": "NODE_ENV=development nodemon index.js",
+    "dev": "NODE_ENV=development node configure.js && nodemon index.js",
     "start": "NODE_ENV=production node index.js",
     "prepare": "husky install",
     "build": "webpack"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AllInOpenSource/BadgingAPI.git"
+    "url": "git+https://github.com/badging/BadgingAPI.git"
   },
-  "author": "CHAOSS/AllInOpenSource",
+  "author": "CHAOSS",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AllInOpenSource/BadgingAPI/issues"
+    "url": "https://github.com/badging/BadgingAPI/issues"
   },
-  "homepage": "https://github.com/AllInOpenSource/BadgingAPI#readme",
+  "homepage": "https://github.com/badging/BadgingAPI#readme",
   "dependencies": {
+    "@inquirer/prompts": "^3.3.0",
     "@octokit/rest": "^19.0.11",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",

@@ -1,5 +1,5 @@
 const axios = require("axios");
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+require("dotenv").config();
 
 const augurAPI = async (id, level, url) => {
   try {
