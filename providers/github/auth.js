@@ -56,7 +56,7 @@ const requestAccessToken = async (code) => {
   }
 };
 
-const githubAuthCallback = async (req, res) => {
+const handleOAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
   const { access_token, errors: access_token_errors } =
@@ -137,6 +137,18 @@ const githubAuthCallback = async (req, res) => {
     `);
   } else {
     res.status(500).send("Unknown process mode");
+  }
+};
+
+/**
+ * Sets up the provided Express app routes for GitLab
+ * @param {*} app Express application instance
+ */
+const githubAuthCallback = (app) => {
+  if (process.env.NODE_ENV === "production") {
+    app.post("/api/callback/gitlab", handleOAuthCallback);
+  } else if (process.env.NODE_ENV === "development") {
+    app.get("/api/callback/gitlab", handleOAuthCallback);
   }
 };
 
