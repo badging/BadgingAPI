@@ -1,61 +1,7 @@
 const { Octokit } = require("@octokit/rest");
-const axios = require("axios");
 const Repo = require("../../database/models/repo.model.js");
-const bronzeBadge = require("../badges/bronzeBadge.js");
-const mailer = require("../helpers/mailer.js");
-
-/**
- * Starts the authorization process with the GitHub OAuth system
- * @param {*} res Response to send back to the caller
- */
-const authorizeApplication = (res) => {
-  if (!process.env.GITHUB_APP_CLIENT_ID) {
-    res.status(500).send("GitHub provider is not configured");
-    return;
-  }
-
-  const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${
-    process.env.GITHUB_APP_CLIENT_ID
-  }&scope=${scopes.join(",")}`;
-
-  res.redirect(url);
-};
-
-/**
- * Calls the GitHub API to get an access token from the OAuth code.
- * @param {*} code Code returned by the GitHub OAuth authorization API
- * @returns A json object with `access_token` and `errors`
- */
-const requestAccessToken = async (code) => {
-  try {
-    const {
-      data: { access_token },
-    } = await axios.post(
-      "https://github.com/login/oauth/access_token",
-      {
-        client_id: process.env.GITHUB_APP_CLIENT_ID,
-        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
-        code,
-      },
-      {
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-
-    return {
-      access_token,
-      errors: [],
-    };
-  } catch (error) {
-    return {
-      access_token: "",
-      errors: [error.message],
-    };
-  }
-};
+const bronzeBadge = require("../../src/badges/bronzeBadge.js");
+const mailer = require("../../src/helpers/mailer.js");
 
 /**
  * Calls the GitHub API to get the user info.
@@ -281,8 +227,6 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
 };
 
 module.exports = {
-  authorizeApplication,
-  requestAccessToken,
   getUserInfo,
   getUserRepositories,
   scanRepositories,

@@ -1,13 +1,66 @@
 const { Octokit } = require("@octokit/rest");
-
+const axios = require("axios");
 const { saveUser } = require("../../database/controllers/user.controller.js");
-const github_helper = require("../helpers/github.js");
+const { getUserInfo, getUserRepositories } = require("./APICalls.js");
 
-const handleOAuthCallback = async (req, res) => {
+/**
+ * Starts the authorization process with the GitHub OAuth system
+ * @param {*} res Response to send back to the caller
+ */
+const githubAuth = (req, res) => {
+  if (!process.env.GITHUB_APP_CLIENT_ID) {
+    res.status(500).send("GitHub provider is not configured");
+    return;
+  }
+
+  const scopes = ["user", "repo"];
+  const url = `https://github.com/login/oauth/authorize?client_id=${
+    process.env.GITHUB_APP_CLIENT_ID
+  }&scope=${scopes.join(",")}`;
+
+  res.redirect(url);
+};
+
+/**
+ * Calls the GitHub API to get an access token from the OAuth code.
+ * @param {*} code Code returned by the GitHub OAuth authorization API
+ * @returns A json object with `access_token` and `errors`
+ */
+const requestAccessToken = async (code) => {
+  try {
+    const {
+      data: { access_token },
+    } = await axios.post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: process.env.GITHUB_APP_CLIENT_ID,
+        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
+        code,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    return {
+      access_token,
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      access_token: "",
+      errors: [error.message],
+    };
+  }
+};
+
+const githubAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
   const { access_token, errors: access_token_errors } =
-    await github_helper.requestAccessToken(code);
+    await requestAccessToken(code);
   if (access_token_errors.length > 0) {
     res.status(500).send(access_token_errors.join());
     return;
@@ -16,8 +69,7 @@ const handleOAuthCallback = async (req, res) => {
   const octokit = new Octokit({ auth: `${access_token}` });
 
   // Authenticated user details
-  const { user_info, errors: user_info_errors } =
-    await github_helper.getUserInfo(octokit);
+  const { user_info, errors: user_info_errors } = await getUserInfo(octokit);
   if (user_info_errors.length > 0) {
     res.status(500).send(user_info_errors.join());
     return;
@@ -38,16 +90,13 @@ const handleOAuthCallback = async (req, res) => {
 
   // Public repos they maintain, administer, or own
   const { repositories, errors: repositories_errors } =
-    await github_helper.getUserRepositories(octokit);
+    await getUserRepositories(octokit);
   if (repositories_errors.length > 0) {
     res.status(500).send(repositories_errors.join());
     return;
   }
 
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.RETURN_JSON_ON_LOGIN
-  ) {
+  if (process.env.NODE_ENV === "production") {
     res.status(200).json({
       userId: savedUser.id,
       name: savedUser.name,
@@ -91,21 +140,7 @@ const handleOAuthCallback = async (req, res) => {
   }
 };
 
-/**
- * Sets up the provided Express app routes for GitHub
- * @param {*} app Express application instance
- */
-const setupGitHubRoutes = (app) => {
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.RETURN_JSON_ON_LOGIN
-  ) {
-    app.post("/api/callback/github", handleOAuthCallback);
-  } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/github", handleOAuthCallback);
-  }
-};
-
 module.exports = {
-  setupGitHubRoutes,
+  githubAuth,
+  githubAuthCallback,
 };

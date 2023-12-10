@@ -11,7 +11,7 @@
     "precommit": "lint-staged",
     "format": "npm run prettier:fix && npm run lint:fix",
     "test": "npm run test",
-    "dev": "NODE_ENV=development node configure.js && nodemon index.js",
+    "dev": "NODE_ENV=development node configure.js && NODE_ENV=development nodemon index.js",
     "start": "NODE_ENV=production node index.js",
     "prepare": "husky install",
     "build": "webpack"

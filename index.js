@@ -6,7 +6,6 @@ const routes = require("./src/routes/index.js");
 require("dotenv").config();
 
 const app = express();
-app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(
