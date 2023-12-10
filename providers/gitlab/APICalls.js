@@ -1,64 +1,7 @@
 const axios = require("axios");
 const Repo = require("../../database/models/repo.model.js");
-const bronzeBadge = require("../badges/bronzeBadge.js");
-const mailer = require("../helpers/mailer.js");
-
-/**
- * Starts the authorization process with the GitLab OAuth system
- * @param {*} res Response to send back to the caller
- */
-const authorizeApplication = (res) => {
-  if (!process.env.GITLAB_APP_CLIENT_ID) {
-    res.status(500).send("GitLab provider is not configured");
-    return;
-  }
-
-  const scopes = ["read_api"];
-  const url = `https://gitlab.com/oauth/authorize?client_id=${
-    process.env.GITLAB_APP_CLIENT_ID
-  }&response_type=code&state=STATE&scope=${scopes.join("+")}&redirect_uri=${
-    process.env.GITLAB_APP_REDIRECT_URI
-  }`;
-
-  res.redirect(url);
-};
-
-/**
- * Calls the GitLab API to get an access token from the OAuth code.
- * @param {*} code Code returned by the GitLab OAuth authorization API
- * @returns A json object with `access_token` and `errors`
- */
-const requestAccessToken = async (code) => {
-  try {
-    const {
-      data: { access_token },
-    } = await axios.post(
-      "https://gitlab.com/oauth/token",
-      {
-        client_id: process.env.GITLAB_APP_CLIENT_ID,
-        client_secret: process.env.GITLAB_APP_CLIENT_SECRET,
-        code,
-        grant_type: "authorization_code",
-        redirect_uri: process.env.GITLAB_APP_REDIRECT_URI,
-      },
-      {
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
-
-    return {
-      access_token,
-      errors: [],
-    };
-  } catch (error) {
-    return {
-      access_token: "",
-      errors: [error.message],
-    };
-  }
-};
+const bronzeBadge = require("../../src/badges/bronzeBadge.js");
+const mailer = require("../../src/helpers/mailer.js");
 
 /**
  * Calls the GitLab API to get the user info.
@@ -281,8 +224,6 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
 };
 
 module.exports = {
-  authorizeApplication,
-  requestAccessToken,
   getUserInfo,
   getUserRepositories,
   scanRepositories,

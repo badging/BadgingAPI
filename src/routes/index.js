@@ -1,30 +1,13 @@
 const { findUser } = require("../../database/controllers/user.controller.js");
 const Repo = require("../../database/models/repo.model.js");
 const github_helpers = require("../../providers/github/APICalls.js");
+const gitlab_helpers = require("../../providers/gitlab/APICalls.js");
 const {
   githubAuth,
   githubAuthCallback,
-} = require("../../providers/github/auth.js");
-const gitlab_helpers = require("../helpers/gitlab.js");
-const gitlab_routes = require("./gitlab.js");
-
-/**
- * Redirects the user to the OAuth login pages for authentication.
- * @param {*} req - object containing the client req details.
- * @param {*} res - object used to send a redirect response.
- */
-
-// const login = (req, res) => {
-//   const provider = req.query.provider;
-
-//   if (provider === "github") {
-//     github_helpers.authorizeApplication(res);
-//   } else if (provider === "gitlab") {
-//     gitlab_helpers.authorizeApplication(res);
-//   } else {
-//     res.status(400).send(`Unknown provider: ${provider}`);
-//   }
-// };
+  gitlabAuth,
+  gitlabAuthCallback,
+} = require("../../providers");
 
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
@@ -101,9 +84,12 @@ const badgedRepos = async (req, res) => {
 };
 
 const setupRoutes = (app) => {
-  // logins
   app.get("/api/auth/github", (req, res) => {
     githubAuth(req, res);
+  });
+
+  app.get("/api/auth/gitlab", (req, res) => {
+    gitlabAuth(req, res);
   });
 
   //redirects
@@ -115,7 +101,7 @@ const setupRoutes = (app) => {
   app.post("/api/repos-to-badge", reposToBadge);
 
   // github_routes.setupGitHubRoutes(app);
-  gitlab_routes.setupGitLabRoutes(app);
+  gitlabAuthCallback(app);
 };
 
 module.exports = {
