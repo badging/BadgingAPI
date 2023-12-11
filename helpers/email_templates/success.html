@@ -14,6 +14,16 @@
         background-color: #ffffff;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        justify-content: center;
+      }
+
+      #logo {
+        margin-bottom: 40px;
+      }
+
+      #carousel {
+        width: 100%;
+        margin-bottom: 40px;
       }
 
       h1 {
@@ -26,19 +36,6 @@
         color: #555555;
         font-size: 16px;
         line-height: 1.5;
-      }
-
-      ul {
-        color: #555555;
-      }
-
-      #logo {
-        margin-bottom: 40px;
-      }
-
-      #carousel {
-        width: 100%;
-        margin-bottom: 40px;
       }
 
       footer {
@@ -58,50 +55,61 @@
       }
     </style>
   </head>
-
   <body>
     <div class="container">
       <header>
         <img
-          src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/images/logo.svg"
+          src="https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/images/logo.svg"
           alt="badging logo"
           id="logo"
         />
         <img
-          src="https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/images/carousel.svg"
+          src="https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/images/carousel.svg"
           alt="email carousel"
           id="carousel"
         />
       </header>
-      <h1>Badging Updates</h1>
+      <h1>Congratulations on Your DEI Badge!</h1>
       <p class="email_content">
         Dear {{recipientName}},
         <br />
         <br />
-        We hope this email finds you well. We appreciate your submission of the
-        Open Source Project for review to be considered for the
+        We are thrilled to inform you that your recent review submission of your
+        Open Source Project has been recognized and rewarded an All In CHAOSS
+        DEI
         <strong>{{badgeName}}</strong> badge.
         <br />
         <br />
-        Unfortunately, we couldn't issue the badge due to the following;
-      </p>
-      <ul>
-        <li>{{results}}</li>
-      </ul>
-      <p class="email_content">
-        Once you have the missing information, please resubmit your project for
-        review, and we'll be happy to reconsider it for the badge issuance.
+        Once Again, congratulations on this well-deserved Badge!
         <br />
         <br />
-        If you have any questions or need further assistance, feel free to reach
-        out to our DEI Badging Team.
+        To poudly showcase your accomplishment, we have provided a Markdown
+        Badge link that can be seamlessly incorporated into your project's
+        documentation, README, website or any other online platform.
         <br />
         <br />
-        Thank you for your continuous effort in promoting Diversity, Equity, and
-        Inclusion.
+        Markdown Badge Link:
+        <br />
+        <code>{{markdownLink}}</code>
         <br />
         <br />
-        Best regards,
+        Here is the HTML Link:
+        <br />
+        <code>{{htmlLink}}</code>
+        <br />
+        <br />
+        In the coming 3-4 days, we will share a supplemental report on your
+        project's language inclusivity. This report will provide valuable
+        insights into how inclusive your project's language is to diversw
+        audiences. This report is only a supplement to your DEI Badge and has no
+        impact on current or future badges. The report will only be sent to this
+        email and can be used in any way that you see fit.
+        <br />
+        <br />
+        Thank you for your ongoing DEI efforts!
+        <br />
+        <br />
+        Best regards;
         <br />
         The DEI Badging Team
       </p>

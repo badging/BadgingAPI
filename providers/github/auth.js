@@ -1,19 +1,75 @@
+const { Octokit } = require("@octokit/rest");
+const axios = require("axios");
 const { saveUser } = require("../../database/controllers/user.controller.js");
-const gitlab_helper = require("../helpers/gitlab.js");
+const { getUserInfo, getUserRepositories } = require("./APICalls.js");
+
+/**
+ * Starts the authorization process with the GitHub OAuth system
+ * @param {*} res Response to send back to the caller
+ */
+const githubAuth = (req, res) => {
+  if (!process.env.GITHUB_APP_CLIENT_ID) {
+    res.status(500).send("GitHub provider is not configured");
+    return;
+  }
+
+  const scopes = ["user", "repo"];
+  const url = `https://github.com/login/oauth/authorize?client_id=${
+    process.env.GITHUB_APP_CLIENT_ID
+  }&scope=${scopes.join(",")}`;
+
+  res.redirect(url);
+};
+
+/**
+ * Calls the GitHub API to get an access token from the OAuth code.
+ * @param {*} code Code returned by the GitHub OAuth authorization API
+ * @returns A json object with `access_token` and `errors`
+ */
+const requestAccessToken = async (code) => {
+  try {
+    const {
+      data: { access_token },
+    } = await axios.post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: process.env.GITHUB_APP_CLIENT_ID,
+        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
+        code,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    return {
+      access_token,
+      errors: [],
+    };
+  } catch (error) {
+    return {
+      access_token: "",
+      errors: [error.message],
+    };
+  }
+};
 
 const handleOAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
   const { access_token, errors: access_token_errors } =
-    await gitlab_helper.requestAccessToken(code);
+    await requestAccessToken(code);
   if (access_token_errors.length > 0) {
     res.status(500).send(access_token_errors.join());
     return;
   }
 
+  const octokit = new Octokit({ auth: `${access_token}` });
+
   // Authenticated user details
-  const { user_info, errors: user_info_errors } =
-    await gitlab_helper.getUserInfo(access_token);
+  const { user_info, errors: user_info_errors } = await getUserInfo(octokit);
   if (user_info_errors.length > 0) {
     res.status(500).send(user_info_errors.join());
     return;
@@ -24,8 +80,8 @@ const handleOAuthCallback = async (req, res) => {
     user_info.login,
     user_info.name,
     user_info.email,
-    null,
-    user_info.id
+    user_info.id,
+    null
   );
   if (!savedUser) {
     res.status(500).send("Error saving user info");
@@ -34,23 +90,20 @@ const handleOAuthCallback = async (req, res) => {
 
   // Public repos they maintain, administer, or own
   const { repositories, errors: repositories_errors } =
-    await gitlab_helper.getUserRepositories(access_token);
+    await getUserRepositories(octokit);
   if (repositories_errors.length > 0) {
     res.status(500).send(repositories_errors.join());
     return;
   }
 
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.RETURN_JSON_ON_LOGIN
-  ) {
+  if (process.env.NODE_ENV === "production") {
     res.status(200).json({
       userId: savedUser.id,
       name: savedUser.name,
       username: savedUser.login,
       email: savedUser.email,
       repos: repositories,
-      provider: "gitlab",
+      provider: "github",
     });
   } else if (process.env.NODE_ENV === "development") {
     res.status(200).send(`
@@ -63,7 +116,7 @@ const handleOAuthCallback = async (req, res) => {
           <h2>Username: ${savedUser.login}</h2>
           <h2>Email: ${savedUser.email}</h2>
           <form action="/api/repos-to-badge" method="post">
-            <input type="hidden" name="provider" value="gitlab">
+            <input type="hidden" name="provider" value="github">
             <input type="hidden" name="userId" value="${savedUser.id}">
             <h2>Select Repositories:</h2>
             ${repositories
@@ -91,11 +144,8 @@ const handleOAuthCallback = async (req, res) => {
  * Sets up the provided Express app routes for GitLab
  * @param {*} app Express application instance
  */
-const setupGitLabRoutes = (app) => {
-  if (
-    process.env.NODE_ENV === "production" ||
-    process.env.RETURN_JSON_ON_LOGIN
-  ) {
+const githubAuthCallback = (app) => {
+  if (process.env.NODE_ENV === "production") {
     app.post("/api/callback/gitlab", handleOAuthCallback);
   } else if (process.env.NODE_ENV === "development") {
     app.get("/api/callback/gitlab", handleOAuthCallback);
@@ -103,5 +153,6 @@ const setupGitLabRoutes = (app) => {
 };
 
 module.exports = {
-  setupGitLabRoutes,
+  githubAuth,
+  githubAuthCallback,
 };

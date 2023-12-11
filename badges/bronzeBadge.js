@@ -1,6 +1,6 @@
 const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
-const saveRepo = require("../../database/controllers/repo.controller");
+const saveRepo = require("../database/controllers/repo.controller");
 
 const bronzeBadge = async (
   userId,
@@ -35,9 +35,9 @@ const bronzeBadge = async (
   } else if (hasAllTitles) {
     // email content
     const markdownLink =
-      "![Bronze Badge](https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/badges/bronze-badge.svg)";
+      "![Bronze Badge](https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/badges/bronze-badge.svg)";
     const htmlLink =
-      "&lt;img src=&quot;https://raw.githubusercontent.com/AllInOpenSource/BadgingAPI/main/src/assets/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
+      "&lt;img src=&quot;https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
 
     // send email
     mailer(email, userName, "Bronze", markdownLink, htmlLink);
