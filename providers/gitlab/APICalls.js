@@ -1,7 +1,7 @@
 const axios = require("axios");
 const Repo = require("../../database/models/repo.model.js");
-const bronzeBadge = require("../../src/badges/bronzeBadge.js");
-const mailer = require("../../src/helpers/mailer.js");
+const bronzeBadge = require("../../badges/bronzeBadge.js");
+const mailer = require("../../helpers/mailer.js");
 
 /**
  * Calls the GitLab API to get the user info.

@@ -1,13 +1,13 @@
-const { findUser } = require("../../database/controllers/user.controller.js");
-const Repo = require("../../database/models/repo.model.js");
-const github_helpers = require("../../providers/github/APICalls.js");
-const gitlab_helpers = require("../../providers/gitlab/APICalls.js");
+const { findUser } = require("../database/controllers/user.controller.js");
+const Repo = require("../database/models/repo.model.js");
+const github_helpers = require("../providers/github/APICalls.js");
+const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const {
   githubAuth,
   githubAuthCallback,
   gitlabAuth,
   gitlabAuthCallback,
-} = require("../../providers");
+} = require("../providers/index.js");
 
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
