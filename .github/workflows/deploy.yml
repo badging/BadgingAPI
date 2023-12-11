@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  REGISTRY: "registry.digitalocean.com/project-badging"
+  REGISTRY: "registry.digitalocean.com/badging"
   IMAGE_NAME: "badging"
 
 jobs:
@@ -20,41 +20,28 @@ jobs:
       - name: Lint code
         run: npm run format
 
-  docker-build:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
-      - name: Login to DigitalOcean registry
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl registry login --expiry-seconds 600
-      - name: Delete existing images with similar name
-        run: |
-          doctl registry repository list-tags $REGISTRY/$IMAGE_NAME --format Name --no-header |
-          while read -r image_tag; do
-            doctl registry image delete $REGISTRY/$IMAGE_NAME:$image_tag;
-          done
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
-  deploy:
-    needs: docker-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - name: Login to DigitalOcean registry
-        uses: digitalocean/action-doctl@v2
+      - name: Create image archive
+        run: docker save ${{ env.IMAGE_NAME }}:${{ github.sha }} -o badging.tar
+
+      - name: Upload image archive using appleboy/scp-action
+        uses: appleboy/scp-action@v0.1.4
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      - name: Stop and remove existing images with the same name on the droplet
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          source: badging.tar
+          target: ~/
+
+      - name: Extract and load image on droplet
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.HOST }}
@@ -65,18 +52,10 @@ jobs:
               docker stop ${{ env.IMAGE_NAME }}
               docker rm ${{ env.IMAGE_NAME }}
             fi
-      - name: Deploy Docker image to DigitalOcean Droplet
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          script: |
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            echo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            docker load -i ~/badging.tar
             docker run -d \
-            -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
-            --env-file /home/${{ secrets.USERNAME }}/.env \
-            --restart=always \
-            --name ${{ env.IMAGE_NAME }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+              --env-file /home/${{ secrets.USERNAME }}/.env \
+              --restart=always \
+              --name ${{ env.IMAGE_NAME }} \
+              ${{ env.IMAGE_NAME }}:${{ github.sha }}
