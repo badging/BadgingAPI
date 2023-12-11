@@ -12,12 +12,6 @@ const {
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
   const userId = req.body.userId;
-  const provider = req.body.provider;
-
-  if (!provider) {
-    res.status(400).send("provider missing");
-    return;
-  }
 
   if (!userId) {
     res.status(400).send("userId missing");
@@ -36,25 +30,27 @@ const reposToBadge = async (req, res) => {
     return;
   }
 
-  // Process the selected repos as needed
-  if (provider === "github") {
-    const results = await github_helpers.scanRepositories(
-      user.id,
-      user.name,
-      user.email,
-      selectedRepos
-    );
-    res.status(200).json({ results });
-  } else if (provider === "gitlab") {
-    const results = await gitlab_helpers.scanRepositories(
-      user.id,
-      user.name,
-      user.email,
-      selectedRepos
-    );
-    res.status(200).json({ results });
-  } else {
-    res.status(400).send(`Unknown provider: ${provider}`);
+  try {
+    // Process the selected repos as needed
+    if (user.gihubId) {
+      const results = await github_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        selectedRepos
+      );
+      res.status(200).json({ results });
+    } else if (user.gitlabId) {
+      const results = await gitlab_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        selectedRepos
+      );
+      res.status(200).json({ results });
+    }
+  } catch (error) {
+    res.status(400).send(error);
   }
 };
 
