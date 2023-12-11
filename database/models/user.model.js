@@ -16,7 +16,11 @@ const User = sequelize.define("users", {
   },
   githubId: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
+  },
+  gitlabId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
   },
 });
 

@@ -1,30 +1,31 @@
-const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
 const Repo = require("../../database/models/repo.model.js");
 const bronzeBadge = require("../badges/bronzeBadge.js");
 const mailer = require("../helpers/mailer.js");
 
 /**
- * Starts the authorization process with the GitHub OAuth system
+ * Starts the authorization process with the GitLab OAuth system
  * @param {*} res Response to send back to the caller
  */
 const authorizeApplication = (res) => {
-  if (!process.env.GITHUB_APP_CLIENT_ID) {
-    res.status(500).send("GitHub provider is not configured");
+  if (!process.env.GITLAB_APP_CLIENT_ID) {
+    res.status(500).send("GitLab provider is not configured");
     return;
   }
 
-  const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${
-    process.env.GITHUB_APP_CLIENT_ID
-  }&scope=${scopes.join(",")}`;
+  const scopes = ["read_api"];
+  const url = `https://gitlab.com/oauth/authorize?client_id=${
+    process.env.GITLAB_APP_CLIENT_ID
+  }&response_type=code&state=STATE&scope=${scopes.join("+")}&redirect_uri=${
+    process.env.GITLAB_APP_REDIRECT_URI
+  }`;
 
   res.redirect(url);
 };
 
 /**
- * Calls the GitHub API to get an access token from the OAuth code.
- * @param {*} code Code returned by the GitHub OAuth authorization API
+ * Calls the GitLab API to get an access token from the OAuth code.
+ * @param {*} code Code returned by the GitLab OAuth authorization API
  * @returns A json object with `access_token` and `errors`
  */
 const requestAccessToken = async (code) => {
@@ -32,11 +33,13 @@ const requestAccessToken = async (code) => {
     const {
       data: { access_token },
     } = await axios.post(
-      "https://github.com/login/oauth/access_token",
+      "https://gitlab.com/oauth/token",
       {
-        client_id: process.env.GITHUB_APP_CLIENT_ID,
-        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
+        client_id: process.env.GITLAB_APP_CLIENT_ID,
+        client_secret: process.env.GITLAB_APP_CLIENT_SECRET,
         code,
+        grant_type: "authorization_code",
+        redirect_uri: process.env.GITLAB_APP_REDIRECT_URI,
       },
       {
         headers: {
@@ -58,17 +61,21 @@ const requestAccessToken = async (code) => {
 };
 
 /**
- * Calls the GitHub API to get the user info.
- * @param {*} octokit Octokit instance with autorization already set up
+ * Calls the GitLab API to get the user info.
+ * @param {*} access_token Token used to authorize the call to the GitLab API
  * @returns A json object with `user_info` and `errors`
  */
-const getUserInfo = async (octokit) => {
+const getUserInfo = async (access_token) => {
   try {
     // Authenticated user details
-    const response = await octokit.users.getAuthenticated();
     const {
-      data: { login, name, email, id },
-    } = response;
+      data: { username: login, name, email, id },
+    } = await axios.get("https://gitlab.com/api/v4/user", {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
 
     return {
       user_info: {
@@ -88,36 +95,28 @@ const getUserInfo = async (octokit) => {
 };
 
 /**
- * Calls the GitHub API to get the user public repositories.
- * @param {*} octokit Octokit instance with autorization already set up
+ * Calls the GitLab API to get the user public repositories.
+ * @param {*} access_token Token used to authorize the call to the GitLab API
  * @returns A json object with `repositories` and `errors`
  */
-const getUserRepositories = async (octokit) => {
+const getUserRepositories = async (access_token) => {
   try {
-    // Public repos they maintain, administer, or own
-    let repos = [];
-    let page = 1;
-    let response = await octokit.repos.listForAuthenticatedUser({
-      visibility: "public",
-      per_page: 100,
-      page,
-    });
-
-    while (response.data.length > 0) {
-      repos = [...repos, ...response.data];
-      page++;
-      response = await octokit.repos.listForAuthenticatedUser({
-        visibility: "public",
-        per_page: 100,
-        page,
-      });
-    }
+    // Authenticated user details
+    const { data } = await axios.get(
+      "https://gitlab.com/api/v4/projects?owned=true&visibility=public",
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
 
     return {
-      repositories: repos.map((repo) => {
+      repositories: data.map((repo) => {
         return {
           id: repo.id,
-          fullName: repo.full_name,
+          fullName: repo.name_with_namespace,
         };
       }),
       errors: [],
@@ -132,23 +131,25 @@ const getUserRepositories = async (octokit) => {
 
 /**
  * Get the id and url of the provided repository path
- * @param {*} octokit An Octokit instance
  * @param {*} repositoryId The id of the repository
  * @returns A json object with `info` (the repository infos) and `errors`
  */
-const getRepositoryInfo = async (octokit, repositoryId) => {
+const getRepositoryInfo = async (repositoryId) => {
   try {
-    const {
-      data: { id, html_url, full_name },
-    } = await octokit.request("GET /repositories/{repositoryId}", {
-      repositoryId,
-    });
+    const { data } = await axios.get(
+      `https://gitlab.com/api/v4/projects/${repositoryId}`,
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
 
     return {
       info: {
-        id,
-        url: html_url,
-        fullName: full_name,
+        id: repositoryId,
+        url: data.web_url,
+        defaultBranch: data.default_branch,
       },
       errors: [],
     };
@@ -162,25 +163,26 @@ const getRepositoryInfo = async (octokit, repositoryId) => {
 
 /**
  * Get the content and commit SHA of a file inside a repository
- * @param {*} octokit An Octokit instance
- * @param {*} repositoryFullName The full path to the repository
+ * @param {*} repositoryId The path to the repository, without the owner prefix
  * @param {*} filePath The path to the file inside the repository
+ * @param {*} branch Name of the branch to use as source for the file
  * @returns A json object with `file` (SHA and content) and `errors`
  */
-const getFileContentAndSHA = async (octokit, repositoryFullName, filePath) => {
+const getFileContentAndSHA = async (repositoryId, filePath, branch) => {
   try {
-    const {
-      data: { sha, content },
-    } = await octokit.repos.getContent({
-      owner: repositoryFullName.split("/")[0],
-      repo: repositoryFullName.split("/")[1],
-      path: filePath,
-    });
+    const { data } = await axios.get(
+      `https://gitlab.com/api/v4/projects/${repositoryId}/repository/files/${filePath}?ref=${branch}`,
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
 
     return {
       file: {
-        sha,
-        content: Buffer.from(content, "base64").toString(),
+        sha: data.last_commit_id,
+        content: Buffer.from(data.content, "base64").toString(),
       },
       errors: [],
     };
@@ -200,13 +202,11 @@ const getFileContentAndSHA = async (octokit, repositoryFullName, filePath) => {
  * @param {*} repositoryIds List of repositories id to scan
  */
 const scanRepositories = async (userId, name, email, repositoryIds) => {
-  const octokit = new Octokit();
   let results = [];
 
   try {
     for (const repositoryId of repositoryIds) {
       const { info, errors: info_errors } = await getRepositoryInfo(
-        octokit,
         repositoryId
       );
       if (info_errors.length > 0) {
@@ -215,9 +215,9 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
       }
 
       const { file, errors: file_errors } = await getFileContentAndSHA(
-        octokit,
-        info.fullName,
-        "DEI.md"
+        repositoryId,
+        "DEI.md",
+        info.defaultBranch
       );
       if (file_errors.length > 0) {
         results.push(`${info.url} does not have a DEI.md file`);
@@ -227,7 +227,7 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
       try {
         // Check if the repo was badged before
         const existingRepo = await Repo.findOne({
-          where: { githubRepoId: info.id, DEICommitSHA: file.sha },
+          where: { gitlabRepoId: info.id, DEICommitSHA: file.sha },
         });
 
         if (file.content) {
@@ -238,8 +238,8 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
                 userId,
                 name,
                 email,
-                info.id,
                 null,
+                info.id,
                 info.url,
                 file.content,
                 file.sha
@@ -254,8 +254,8 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
               userId,
               name,
               email,
-              info.id,
               null,
+              info.id,
               info.url,
               file.content,
               file.sha

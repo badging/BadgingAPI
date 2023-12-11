@@ -1,6 +1,9 @@
+const { findUser } = require("../../database/controllers/user.controller.js");
 const Repo = require("../../database/models/repo.model.js");
 const github_helpers = require("../helpers/github.js");
 const github_routes = require("./github.js");
+const gitlab_helpers = require("../helpers/gitlab.js");
+const gitlab_routes = require("./gitlab.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -12,6 +15,8 @@ const login = (req, res) => {
 
   if (provider === "github") {
     github_helpers.authorizeApplication(res);
+  } else if (provider === "gitlab") {
+    gitlab_helpers.authorizeApplication(res);
   } else {
     res.status(400).send(`Unknown provider: ${provider}`);
   }
@@ -19,19 +24,45 @@ const login = (req, res) => {
 
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
-  const name = req.body.name || "";
-  const email = req.body.email || "";
+  const userId = req.body.userId;
   const provider = req.body.provider;
 
   if (!provider) {
     res.status(400).send("provider missing");
+    return;
+  }
+
+  if (!userId) {
+    res.status(400).send("userId missing");
+    return;
+  }
+
+  let user = null;
+  try {
+    user = await findUser(userId);
+    if (!user) {
+      res.status(404).json("User not found");
+      return;
+    }
+  } catch (error) {
+    res.status(500).json("Error fetching user data");
+    return;
   }
 
   // Process the selected repos as needed
   if (provider === "github") {
     const results = await github_helpers.scanRepositories(
-      name,
-      email,
+      user.id,
+      user.name,
+      user.email,
+      selectedRepos
+    );
+    res.status(200).json({ results });
+  } else if (provider === "gitlab") {
+    const results = await gitlab_helpers.scanRepositories(
+      user.id,
+      user.name,
+      user.email,
       selectedRepos
     );
     res.status(200).json({ results });
@@ -71,6 +102,7 @@ const setupRoutes = (app) => {
   app.post("/api/repos-to-badge", reposToBadge);
 
   github_routes.setupGitHubRoutes(app);
+  gitlab_routes.setupGitLabRoutes(app);
 };
 
 module.exports = {
