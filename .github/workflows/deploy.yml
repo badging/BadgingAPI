@@ -7,8 +7,7 @@ on:
   pull_request:
 
 env:
-  REGISTRY: "registry.digitalocean.com/badging"
-  IMAGE_NAME: "badging"
+  IMAGE_NAME: "project_badging"
 
 jobs:
   build:
