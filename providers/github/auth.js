@@ -146,9 +146,9 @@ const handleOAuthCallback = async (req, res) => {
  */
 const githubAuthCallback = (app) => {
   if (process.env.NODE_ENV === "production") {
-    app.post("/api/callback/gitlab", handleOAuthCallback);
+    app.post("/api/callback/github", handleOAuthCallback);
   } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/gitlab", handleOAuthCallback);
+    app.get("/api/callback/github", handleOAuthCallback);
   }
 };
 

@@ -80,6 +80,26 @@ const badgedRepos = async (req, res) => {
 };
 
 const setupRoutes = (app) => {
+  app.get("/api", (req, res) => {
+    try {
+      res.json({ message: "Project Badging server up and running" });
+    } catch (error) {
+      console.error(error);
+
+      if (error.statusCode && error.statusCode !== 200) {
+        res.status(error.statusCode).json({
+          error: "Error",
+          message: "our bad, something is wrong with the server configuration",
+        });
+      } else {
+        res.status(500).json({
+          error: "Internal Server Error",
+          message: "An unexpected error occurred at our end",
+        });
+      }
+    }
+  });
+
   app.get("/api/auth/github", (req, res) => {
     githubAuth(req, res);
   });
@@ -88,16 +108,14 @@ const setupRoutes = (app) => {
     gitlabAuth(req, res);
   });
 
-  //redirects
-  app.get("/api/callback/github", (req, res) => {
-    githubAuthCallback(req, res);
-  });
+  //callbacks
+  githubAuthCallback(app);
+  gitlabAuthCallback(app);
 
-  app.get("/api/badgedRepos", badgedRepos);
+  app.get("/api/badged-repos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
 
   // github_routes.setupGitHubRoutes(app);
-  gitlabAuthCallback(app);
 };
 
 module.exports = {
