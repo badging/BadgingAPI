@@ -30,6 +30,7 @@ const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
   const userId = req.body.userId;
   const provider = req.body.provider;
+  const repositoryIds = selectedRepos.map((repo) => repo.id);
 
   if (!provider) {
     res.status(400).send("provider missing");
@@ -59,7 +60,7 @@ const reposToBadge = async (req, res) => {
       user.id,
       user.name,
       user.email,
-      selectedRepos
+      repositoryIds
     );
     res.status(200).json({ results });
   } else if (provider === "gitlab") {
@@ -67,7 +68,7 @@ const reposToBadge = async (req, res) => {
       user.id,
       user.name,
       user.email,
-      selectedRepos
+      repositoryIds
     );
     res.status(200).json({ results });
   } else {
