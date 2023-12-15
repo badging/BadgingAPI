@@ -10,17 +10,7 @@
 #   IMAGE_NAME: "project_badging"
 
 # jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Install dependencies
-#         run: npm install
-#       - name: Lint code
-#         run: npm run format
-
 #   deploy:
-#     needs: build
 #     runs-on: ubuntu-latest
 #     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 #     steps:
@@ -102,24 +92,3 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           source: ./
           target: ./${{ env.DEPLOY_FOLDER }}/
-
-      - name: Install npm dependencies on the server
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          script: |
-            cd ./${{ env.DEPLOY_FOLDER }}
-            npm install
-
-      - name: Deploy with PM2
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          script: |
-            cd ./${{ env.DEPLOY_FOLDER }}
-            pm2 restart index.js
-            pm2 save --force
