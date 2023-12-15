@@ -9,9 +9,32 @@ const {
   gitlabAuthCallback,
 } = require("../providers/index.js");
 
+/**
+ * Redirects the user to the GitHub OAuth login page for authentication.
+ * @param {*} req - object containing the client req details.
+ * @param {*} res - object used to send a redirect response.
+ */
+const login = (req, res) => {
+  const provider = req.query.provider;
+
+  if (provider === "github") {
+    githubAuth(req, res);
+  } else if (provider === "gitlab") {
+    gitlabAuth(req, res);
+  } else {
+    res.status(400).send(`Unknown provider: ${provider}`);
+  }
+};
+
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
   const userId = req.body.userId;
+  const provider = req.body.provider;
+
+  if (!provider) {
+    res.status(400).send("provider missing");
+    return;
+  }
 
   if (!userId) {
     res.status(400).send("userId missing");
@@ -30,27 +53,25 @@ const reposToBadge = async (req, res) => {
     return;
   }
 
-  try {
-    // Process the selected repos as needed
-    if (user.githubId) {
-      const results = await github_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        selectedRepos
-      );
-      res.status(200).json({ results });
-    } else if (user.gitlabId) {
-      const results = await gitlab_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        selectedRepos
-      );
-      res.status(200).json({ results });
-    }
-  } catch (error) {
-    res.status(400).send(error);
+  // Process the selected repos as needed
+  if (provider === "github") {
+    const results = await github_helpers.scanRepositories(
+      user.id,
+      user.name,
+      user.email,
+      selectedRepos
+    );
+    res.status(200).json({ results });
+  } else if (provider === "gitlab") {
+    const results = await gitlab_helpers.scanRepositories(
+      user.id,
+      user.name,
+      user.email,
+      selectedRepos
+    );
+    res.status(200).json({ results });
+  } else {
+    res.status(400).send(`Unknown provider: ${provider}`);
   }
 };
 
@@ -107,15 +128,13 @@ const setupRoutes = (app) => {
   app.get("/api/auth/gitlab", (req, res) => {
     gitlabAuth(req, res);
   });
+  app.get("/api/login", login);
 
   //callbacks
   githubAuthCallback(app);
   gitlabAuthCallback(app);
-
-  app.get("/api/badged-repos", badgedRepos);
+  app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
-
-  // github_routes.setupGitHubRoutes(app);
 };
 
 module.exports = {
