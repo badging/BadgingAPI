@@ -32,7 +32,7 @@ const reposToBadge = async (req, res) => {
 
   try {
     // Process the selected repos as needed
-    if (user.gihubId) {
+    if (user.githubId) {
       const results = await github_helpers.scanRepositories(
         user.id,
         user.name,
