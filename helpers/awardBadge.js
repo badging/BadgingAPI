@@ -2,7 +2,7 @@
 // const path = require("path");
 // const badgePath = path.join(__dirname, "../../assets/badge.svg");
 const badgeLink =
-  "https://raw.githubusercontent.com/AllInOpenSource/ProjectBadging/main/src/assets/images/badges/badge.svg";
+  "https://raw.githubusercontent.com/badging/badging/main/src/assets/images/badges/bronze-badge.svg";
 
 const awardBadge = async (octokit, owner, repoName) => {
   try {
