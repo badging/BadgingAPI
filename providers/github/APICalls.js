@@ -2,6 +2,7 @@ const { Octokit } = require("@octokit/rest");
 const Repo = require("../../database/models/repo.model.js");
 const bronzeBadge = require("../../badges/bronzeBadge.js");
 const mailer = require("../../helpers/mailer.js");
+const axios = require("axios");
 
 /**
  * Calls the GitHub API to get the user info.
@@ -174,6 +175,20 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
           where: { githubRepoId: info.id, DEICommitSHA: file.sha },
         });
 
+        // retrieve DEI template
+        const template_content = await axios.get(
+          "https://api.github.com/repos/badging/badging/contents/Template.DEI.md"
+        );
+        const template = Buffer.from(
+          template_content.data.content,
+          "base64"
+        ).toString();
+
+        console.log({
+          repo: file.content,
+          template_to_test: template,
+        });
+
         if (file.content) {
           if (existingRepo) {
             // Compare the DEICommitSHA with the existing repo's DEICommitSHA
@@ -192,6 +207,11 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
               // Handle case when DEI.md file is not changed
               results.push(`${info.url} was already badged`);
             }
+          } else if (file.content && file.content === template) {
+            // check if file content is copy/paste from template
+            results.push(
+              `Please provide DEI information specific to ${info.url} by editing the template`
+            );
           } else {
             // Repo not badged before, badge it
             bronzeBadge(
