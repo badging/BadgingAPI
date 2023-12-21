@@ -31,7 +31,6 @@ const reposToBadge = async (req, res) => {
   const userId = req.body.userId;
   const provider = req.body.provider;
   const repositoryIds = selectedRepos.map((repo) => repo.id);
-
   if (!provider) {
     res.status(400).send("provider missing");
     return;
@@ -55,22 +54,43 @@ const reposToBadge = async (req, res) => {
   }
 
   // Process the selected repos as needed
-  if (provider === "github") {
-    const results = await github_helpers.scanRepositories(
-      user.id,
-      user.name,
-      user.email,
-      repositoryIds
-    );
-    res.status(200).json({ results });
-  } else if (provider === "gitlab") {
-    const results = await gitlab_helpers.scanRepositories(
-      user.id,
-      user.name,
-      user.email,
-      repositoryIds
-    );
-    res.status(200).json({ results });
+  if (process.env.NODE_ENV === "development") {
+    if (provider === "github") {
+      const results = await github_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        selectedRepos
+      );
+      res.status(200).json({ results });
+    } else if (provider === "gitlab") {
+      const results = await gitlab_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        selectedRepos
+      );
+      res.status(200).json({ results });
+    }
+  } else if (process.env.NODE_ENV === "production") {
+    // process the selected repositories in production
+    if (provider === "github") {
+      const results = await github_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        repositoryIds
+      );
+      res.status(200).json({ results });
+    } else if (provider === "gitlab") {
+      const results = await gitlab_helpers.scanRepositories(
+        user.id,
+        user.name,
+        user.email,
+        repositoryIds
+      );
+      res.status(200).json({ results });
+    }
   } else {
     res.status(400).send(`Unknown provider: ${provider}`);
   }

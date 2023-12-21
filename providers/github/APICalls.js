@@ -2,6 +2,7 @@ const { Octokit } = require("@octokit/rest");
 const Repo = require("../../database/models/repo.model.js");
 const bronzeBadge = require("../../badges/bronzeBadge.js");
 const mailer = require("../../helpers/mailer.js");
+const axios = require("axios");
 
 /**
  * Calls the GitHub API to get the user info.
@@ -71,7 +72,7 @@ const getUserRepositories = async (octokit) => {
   } catch (error) {
     return {
       repositories: null,
-      errors: [error.message],
+      errors: "GitHub API returning no repository(ies).",
     };
   }
 };
@@ -137,7 +138,6 @@ const getFileContentAndSHA = async (octokit, repositoryFullName, filePath) => {
     };
   }
 };
-
 /**
  * Scans a list of repositories to try and apply for a badge
  * @param {*} userId Id of the user
@@ -159,7 +159,6 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
         console.error(info_errors);
         continue;
       }
-
       const { file, errors: file_errors } = await getFileContentAndSHA(
         octokit,
         info.fullName,
@@ -174,6 +173,20 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
         // Check if the repo was badged before
         const existingRepo = await Repo.findOne({
           where: { githubRepoId: info.id, DEICommitSHA: file.sha },
+        });
+
+        // retrieve DEI template
+        const template_content = await axios.get(
+          "https://api.github.com/repos/badging/badging/contents/Template.DEI.md"
+        );
+        const template = Buffer.from(
+          template_content.data.content,
+          "base64"
+        ).toString();
+
+        console.log({
+          repo: file.content,
+          template_to_test: template,
         });
 
         if (file.content) {
@@ -194,6 +207,11 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
               // Handle case when DEI.md file is not changed
               results.push(`${info.url} was already badged`);
             }
+          } else if (file.content && file.content === template) {
+            // check if file content is copy/paste from template
+            results.push(
+              `Please provide DEI information specific to ${info.url} by editing the template`
+            );
           } else {
             // Repo not badged before, badge it
             bronzeBadge(
