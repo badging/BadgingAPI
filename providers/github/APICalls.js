@@ -71,7 +71,7 @@ const getUserRepositories = async (octokit) => {
   } catch (error) {
     return {
       repositories: null,
-      errors: [error.message],
+      errors: "GitHub API returning no repository(ies).",
     };
   }
 };
@@ -137,7 +137,6 @@ const getFileContentAndSHA = async (octokit, repositoryFullName, filePath) => {
     };
   }
 };
-
 /**
  * Scans a list of repositories to try and apply for a badge
  * @param {*} userId Id of the user
@@ -159,7 +158,6 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
         console.error(info_errors);
         continue;
       }
-
       const { file, errors: file_errors } = await getFileContentAndSHA(
         octokit,
         info.fullName,
