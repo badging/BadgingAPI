@@ -3,5 +3,5 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 2020
+EXPOSE 2050
 CMD [ "npm", "start" ]
