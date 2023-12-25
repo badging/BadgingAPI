@@ -42,6 +42,7 @@ jobs:
             docker load -i ~/badging.tar
             docker run -d \
               -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+              -p 3306:3306 \
               --env-file /home/${{ secrets.USERNAME }}/.env \
               --restart=always \
               --name ${{ env.IMAGE_NAME }} \
