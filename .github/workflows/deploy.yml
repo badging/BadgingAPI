@@ -3,7 +3,7 @@ name: CI/CD
 on:
   push:
     branches:
-      - "develop"
+      - "main"
 
 env:
   IMAGE_NAME: "project_badging"
