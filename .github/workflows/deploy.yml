@@ -1,93 +1,49 @@
-# name: CI/CD
-
-# on:
-#   push:
-#     branches:
-#       - "*"
-#   pull_request:
-
-# env:
-#   IMAGE_NAME: "project_badging"
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Build Docker image
-#         run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
-
-#       - name: Create image archive
-#         run: docker save ${{ env.IMAGE_NAME }}:${{ github.sha }} -o badging.tar
-
-#       - name: Upload image archive using appleboy/scp-action
-#         uses: appleboy/scp-action@v0.1.4
-#         with:
-#           host: ${{ secrets.HOST }}
-#           username: ${{ secrets.USERNAME }}
-#           password: ${{ secrets.PASSWORD }}
-#           source: badging.tar
-#           target: ~/
-
-#       - name: Extract and load image on droplet
-#         uses: appleboy/ssh-action@v0.1.10
-#         with:
-#           host: ${{ secrets.HOST }}
-#           username: ${{ secrets.USERNAME }}
-#           password: ${{ secrets.PASSWORD }}
-#           script: |
-#             if docker inspect ${{ env.IMAGE_NAME }} >/dev/null 2>&1; then
-#               docker stop ${{ env.IMAGE_NAME }}
-#               docker rm ${{ env.IMAGE_NAME }}
-#             fi
-#             docker load -i ~/badging.tar
-#             docker run -d \
-#               -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
-#               --env-file /home/${{ secrets.USERNAME }}/.env \
-#               --restart=always \
-#               --name ${{ env.IMAGE_NAME }} \
-#               ${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-name: Node.js CI/CD
+name: CI/CD
 
 on:
   push:
     branches:
-      - "*"
-  pull_request:
+      - "develop"
 
 env:
-  DEPLOY_FOLDER: "project-badging-backend"
+  IMAGE_NAME: "project_badging"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
-      - name: Cleanup existing content on the server
+      - name: Create image archive
+        run: docker save ${{ env.IMAGE_NAME }}:${{ github.sha }} -o badging.tar
+
+      - name: Upload image archive using appleboy/scp-action
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          source: badging.tar
+          target: ~/
+
+      - name: Extract and load image on droplet
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           script: |
-            if [ -d ./${{ env.DEPLOY_FOLDER }} ]; then
-              cd ./${{ env.DEPLOY_FOLDER }}
-              find . -maxdepth 1 -type f ! -name '.env' -exec rm -f {} +
-            else
-              mkdir -p ./${{ env.DEPLOY_FOLDER }}
+            if docker inspect ${{ env.IMAGE_NAME }} >/dev/null 2>&1; then
+              docker stop ${{ env.IMAGE_NAME }}
+              docker rm ${{ env.IMAGE_NAME }}
             fi
-
-      - name: Upload repository contents to the server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          source: ./
-          target: ./${{ env.DEPLOY_FOLDER }}/
+            docker load -i ~/badging.tar
+            docker run -d \
+              -p ${{ secrets.PORT }}:${{ secrets.PORT }} \
+              --env-file /home/${{ secrets.USERNAME }}/.env \
+              --network host \
+              --restart=always \
+              --name ${{ env.IMAGE_NAME }} \
+              ${{ env.IMAGE_NAME }}:${{ github.sha }}
