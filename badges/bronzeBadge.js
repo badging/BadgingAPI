@@ -35,9 +35,9 @@ const bronzeBadge = async (
   } else if (hasAllTitles) {
     // email content
     const markdownLink =
-      "![Bronze Badge](https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/badges/bronze-badge.svg)";
+      "![Bronze Badge](https://raw.githubusercontent.com/badging/badging/main/src/assets/images/badges/bronze-badge.svg)";
     const htmlLink =
-      "&lt;img src=&quot;https://raw.githubusercontent.com/badging/BadgingAPI/main/assets/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
+      "&lt;img src=&quot;https://raw.githubusercontent.com/badging/badging/main/src/assets/images/badges/bronze-badge.svg&quot; alt=&quot;DEI Badging Bronze Badge&quot; /&gt;";
 
     // send email
     mailer(email, userName, "Bronze", markdownLink, htmlLink);
