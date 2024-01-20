@@ -43,30 +43,44 @@ const getUserInfo = async (access_token) => {
  * @returns A json object with `repositories` and `errors`
  */
 const getUserRepositories = async (access_token) => {
+  const repositories = [];
   try {
-    // Authenticated user details
-    const { data } = await axios.get(
-      "https://gitlab.com/api/v4/projects?owned=true&visibility=public",
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${access_token}`,
-        },
-      }
-    );
+    const requestHeaders = {
+      Accept: "application/json",
+      Authorization: `Bearer ${access_token}`,
+    };
+
+    let hasMorePages = true;
+    let pageIndex = 1;
+    while (hasMorePages) {
+      const response = await axios.get(
+        `https://gitlab.com/api/v4/projects?owned=true&visibility=public&per_page=100&page=${pageIndex}`,
+        {
+          headers: requestHeaders,
+        }
+      );
+
+      const { data, headers } = response;
+      hasMorePages = !!headers["x-next-page"];
+      pageIndex++;
+
+      repositories.push(
+        ...data.map((repo) => {
+          return {
+            id: repo.id,
+            fullName: repo.name_with_namespace,
+          };
+        })
+      );
+    }
 
     return {
-      repositories: data.map((repo) => {
-        return {
-          id: repo.id,
-          fullName: repo.name_with_namespace,
-        };
-      }),
+      repositories,
       errors: [],
     };
   } catch (error) {
     return {
-      repositories: null,
+      repositories,
       errors: [error.message],
     };
   }

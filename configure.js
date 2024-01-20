@@ -22,12 +22,23 @@ const fs = require("fs");
         default: "mysql",
       }),
 
-      client_ID: await input({
+      github_client_ID: await input({
         message: "Your personal Github OAuth App Client ID: ",
       }),
-      client_secret: await input({
+      github_client_secret: await input({
         message: "Your personal Github OAuth App Client Secret:",
       }),
+
+      gitlab_client_ID: await input({
+        message: "Your personal GitLab OAuth App Client ID: ",
+      }),
+      gitlab_client_secret: await input({
+        message: "Your personal GitLab OAuth App Client Secret:",
+      }),
+      gitlab_redirect_uri: await input({
+        message: "Your personal GitLab OAuth APP redirection URI:",
+      }),
+
       augur_client_secret: await input({
         message: "Your Augur Client Secret: ",
       }),
@@ -44,8 +55,13 @@ const fs = require("fs");
         DB_HOST=${values.db_host}
         DB_DIALECT=${values.db_dialect}
 
-        CLIENT_ID=${values.client_ID}
-        CLIENT_SECRET=${values.client_secret}
+        GITHUB_APP_CLIENT_ID=${values.github_client_ID}
+        GITHUB_APP_CLIENT_SECRET=${values.github_client_secret}
+
+        GITLAB_APP_CLIENT_ID=${values.gitlab_client_ID}
+        GITLAB_APP_CLIENT_SECRET=${values.gitlab_client_secret}
+        GITLAB_APP_REDIRECT_URI=${values.gitlab_redirect_uri}
+
         AUGUR_CLIENT_SECRET=${values.augur_client_secret}
         PORT=${values.port}
     `;
