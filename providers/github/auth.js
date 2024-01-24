@@ -1,21 +1,34 @@
 const { Octokit } = require("@octokit/rest");
+const { App } = require("octokit");
+require("dotenv").config();
 const axios = require("axios");
 const { saveUser } = require("../../database/controllers/user.controller.js");
 const { getUserInfo, getUserRepositories } = require("./APICalls.js");
+
+// instantiate Github App for event handling (webhooks)
+const githubApp = new App({
+  appId: process.env.GITHUB_APP_ID,
+  privateKey: process.env.GITHUB_APP_PRIVATE_KEY,
+  oauth: {
+    clientId: process.env.GITHUB_APP_CLIENT_ID,
+    clientSecret: process.env.GITHUB_APP_CLIENT_SECRET,
+  },
+  webhooks: { secret: process.env.GITHUB_APP_WEBHOOK_SECRET },
+});
 
 /**
  * Starts the authorization process with the GitHub OAuth system
  * @param {*} res Response to send back to the caller
  */
 const githubAuth = (req, res) => {
-  if (!process.env.GITHUB_APP_CLIENT_ID) {
+  if (!process.env.GITHUB_AUTH_CLIENT_ID) {
     res.status(500).send("GitHub provider is not configured");
     return;
   }
 
   const scopes = ["user", "repo"];
   const url = `https://github.com/login/oauth/authorize?client_id=${
-    process.env.GITHUB_APP_CLIENT_ID
+    process.env.GITHUB_AUTH_CLIENT_ID
   }&scope=${scopes.join(",")}`;
 
   res.redirect(url);
@@ -33,8 +46,8 @@ const requestAccessToken = async (code) => {
     } = await axios.post(
       "https://github.com/login/oauth/access_token",
       {
-        client_id: process.env.GITHUB_APP_CLIENT_ID,
-        client_secret: process.env.GITHUB_APP_CLIENT_SECRET,
+        client_id: process.env.GITHUB_AUTH_CLIENT_ID,
+        client_secret: process.env.GITHUB_AUTH_CLIENT_SECRET,
         code,
       },
       {
@@ -155,4 +168,5 @@ const githubAuthCallback = (app) => {
 module.exports = {
   githubAuth,
   githubAuthCallback,
+  githubApp,
 };

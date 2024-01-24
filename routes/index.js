@@ -1,10 +1,12 @@
 const { findUser } = require("../database/controllers/user.controller.js");
 const Repo = require("../database/models/repo.model.js");
+const event_badging = require("../event_badging/index.js");
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const {
   githubAuth,
   githubAuthCallback,
+  githubApp,
   gitlabAuth,
   gitlabAuthCallback,
 } = require("../providers/index.js");
@@ -156,6 +158,24 @@ const setupRoutes = (app) => {
   gitlabAuthCallback(app);
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
+
+  app.get("*", (req, res) => {
+    res.status(404).send("Endpoint not found or unresponsive");
+  });
+
+  // github app routes
+  app.post("/api/event_badging", async (req, res) => {
+    const {
+      headers: { "x-github-event": name },
+      body: payload,
+    } = req;
+    const octokit = await githubApp.getInstallationOctokit(
+      payload.installation.id
+    );
+    event_badging(name, octokit, payload);
+    console.info(`Received ${name} event from Github`);
+    res.send("ok");
+  });
 };
 
 module.exports = {
