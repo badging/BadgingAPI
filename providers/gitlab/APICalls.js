@@ -68,7 +68,7 @@ const getUserRepositories = async (access_token) => {
         ...data.map((repo) => {
           return {
             id: repo.id,
-            fullName: repo.name_with_namespace,
+            fullName: repo.path_with_namespace,
           };
         })
       );
