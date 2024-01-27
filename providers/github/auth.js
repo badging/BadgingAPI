@@ -8,7 +8,7 @@ const { getUserInfo, getUserRepositories } = require("./APICalls.js");
 // instantiate Github App for event handling (webhooks)
 const githubApp = new App({
   appId: process.env.GITHUB_APP_ID,
-  privateKey: process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  privateKey: process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, "\n"),
   oauth: {
     clientId: process.env.GITHUB_APP_CLIENT_ID,
     clientSecret: process.env.GITHUB_APP_CLIENT_SECRET,
