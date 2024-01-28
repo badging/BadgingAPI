@@ -4,7 +4,7 @@ const sequelize = require("../helpers/sequelize");
 const User = sequelize.define("users", {
   login: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   name: {
     type: DataTypes.STRING,
