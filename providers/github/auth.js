@@ -72,28 +72,28 @@ const requestAccessToken = async (code) => {
 const handleOAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
-  const { access_token, errors: access_token_errors } =
+  const { access_token: accessToken, errors: accessTokenErrors } =
     await requestAccessToken(code);
-  if (access_token_errors.length > 0) {
-    res.status(500).send(access_token_errors.join());
+  if (accessTokenErrors.length > 0) {
+    res.status(500).send(accessTokenErrors.join());
     return;
   }
 
-  const octokit = new Octokit({ auth: `${access_token}` });
+  const octokit = new Octokit({ auth: `${accessToken}` });
 
   // Authenticated user details
-  const { user_info, errors: user_info_errors } = await getUserInfo(octokit);
-  if (user_info_errors.length > 0) {
-    res.status(500).send(user_info_errors.join());
+  const { user_info: userInfo, errors: userInfoErrors } = await getUserInfo(octokit);
+  if (userInfoErrors.length > 0) {
+    res.status(500).send(userInfoErrors.join());
     return;
   }
 
   // Save user to database
   const savedUser = await saveUser(
-    user_info.login,
-    user_info.name,
-    user_info.email,
-    user_info.id,
+    userInfo.login,
+    userInfo.name,
+    userInfo.email,
+    userInfo.id,
     null
   );
   if (!savedUser) {
@@ -102,10 +102,10 @@ const handleOAuthCallback = async (req, res) => {
   }
 
   // Public repos they maintain, administer, or own
-  const { repositories, errors: repositories_errors } =
+  const { repositories, errors: repositoriesErrors } =
     await getUserRepositories(octokit);
-  if (repositories_errors.length > 0) {
-    res.status(500).send(repositories_errors.join());
+  if (repositoriesErrors.length > 0) {
+    res.status(500).send(repositoriesErrors.join());
     return;
   }
 

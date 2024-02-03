@@ -1,14 +1,8 @@
-// const fs = require("fs");
-// const path = require("path");
-// const badgePath = path.join(__dirname, "../../assets/badge.svg");
 const badgeLink =
   "https://raw.githubusercontent.com/badging/badging/main/src/assets/images/badges/bronze-badge.svg";
 
 const awardBadge = async (octokit, owner, repoName) => {
   try {
-    // Read the SVG file content
-    // const svgContent = fs.readFileSync(badgePath, "utf8");
-
     // Read the existing README file content
     const { data: existingFile } = await octokit.rest.repos.getContent({
       owner: owner,
@@ -21,8 +15,6 @@ const awardBadge = async (octokit, owner, repoName) => {
       "base64"
     ).toString("utf8");
 
-    // Combine the SVG content with the existing README content
-    // const updatedContent = `![Bronze badge](${svgContent})\n\n${existingContent}`;
     const updatedContent = `![Bronze badge](${badgeLink})\n\n${existingContent}`;
 
     // Create or update the README file with the modified content directly on the main branch

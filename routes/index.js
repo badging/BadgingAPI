@@ -1,6 +1,6 @@
 const { findUser } = require("../database/controllers/user.controller.js");
 const Repo = require("../database/models/repo.model.js");
-const event_badging = require("../event_badging/index.js");
+const eventBadging = require("../event_badging/index.js");
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const {
@@ -172,7 +172,7 @@ const setupRoutes = (app) => {
     const octokit = await githubApp.getInstallationOctokit(
       payload.installation.id
     );
-    event_badging(name, octokit, payload);
+    eventBadging(name, octokit, payload);
     console.info(`Received ${name} event from Github`);
     res.send("ok");
   });

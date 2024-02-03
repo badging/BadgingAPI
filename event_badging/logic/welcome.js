@@ -7,6 +7,7 @@ const welcome = async (octokit, payload) => {
     path: ".github/applicant-welcome.md",
   });
 
+  // send welcome message on the issue
   await octokit.rest.issues
     .createComment({
       owner: payload.repository.owner.login,

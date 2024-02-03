@@ -7,7 +7,7 @@ const {
   updateReadme,
 } = require("./logic/index.js");
 
-const event_badging = async (name, octokit, payload) => {
+const eventBadging = async (name, octokit, payload) => {
   // perform actions on application issues only
   if (payload.issue.title.match(/event/i)) {
     // when applicant issue is open, welcome the applicant
@@ -49,4 +49,4 @@ const event_badging = async (name, octokit, payload) => {
   }
 };
 
-module.exports = event_badging;
+module.exports = eventBadging;

@@ -7,12 +7,14 @@ const calculateBadge = async (octokit, payload) => {
     ? (initialCheckCount = 4)
     : initialCheckCount;
 
+  // get the list of comments on the event issue
   const comments = await octokit.rest.issues.listComments({
     owner: payload.repository.owner.login,
     repo: payload.repository.name,
     issue_number: payload.issue.number,
   });
 
+  // filter out the comments that are checklists
   let checklists = comments.data.filter((comment) => {
     return (
       comment.user.type == "Bot" &&
@@ -20,6 +22,7 @@ const calculateBadge = async (octokit, payload) => {
     );
   });
 
+  // get the total number of checks for each checklist
   let totalCheckCount = checklists.map(function (element) {
     return (
       (element.body.match(/\[x\]/g) || []).length +
@@ -31,6 +34,7 @@ const calculateBadge = async (octokit, payload) => {
     return element - initialCheckCount;
   });
 
+  // get the number of checks for each checklist that are positive
   let positiveCheckCount = checklists.map(function (element) {
     let checkCount =
       +(element.body.match(/\[x\]/g) || []).length - initialCheckCount;
@@ -38,6 +42,7 @@ const calculateBadge = async (octokit, payload) => {
     else return checkCount;
   });
 
+  // get the percentage of checks for each checklist that are positive
   let percentages = positiveCheckCount.map(function (element) {
     let p = Math.floor((element / totalCheckCount[0]) * 100);
     return p;
@@ -50,6 +55,7 @@ const calculateBadge = async (octokit, payload) => {
   });
   reviewResult /= reviewerCount;
 
+  // assign bagde based on review result
   const badgeAssigned =
     reviewResult < 40
       ? ["Pending", "D%26I-Pending-red"]
@@ -75,7 +81,7 @@ const calculateBadge = async (octokit, payload) => {
     "<img src='" +
     url +
     "' alt='" +
-    "D&I Badging badge state: " +
+    "d&i-badging-badge-state: " +
     badgeAssigned[0] +
     "'/>";
   messageObj = {
