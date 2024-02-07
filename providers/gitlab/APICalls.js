@@ -163,20 +163,20 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
 
   try {
     for (const repositoryId of repositoryIds) {
-      const { info, errors: info_errors } = await getRepositoryInfo(
+      const { info, errors: infoErrors } = await getRepositoryInfo(
         repositoryId
       );
-      if (info_errors.length > 0) {
-        console.error(info_errors);
+      if (infoErrors.length > 0) {
+        console.error(infoErrors);
         continue;
       }
 
-      const { file, errors: file_errors } = await getFileContentAndSHA(
+      const { file, errors: fileErrors } = await getFileContentAndSHA(
         repositoryId,
         "DEI.md",
         info.defaultBranch
       );
-      if (file_errors.length > 0) {
+      if (fileErrors.length > 0) {
         results.push(`${info.url} does not have a DEI.md file`);
         continue;
       }
@@ -188,11 +188,11 @@ const scanRepositories = async (userId, name, email, repositoryIds) => {
         });
 
         // retrieve DEI template
-        const template_content = await axios.get(
+        const templateContent = await axios.get(
           "https://api.github.com/repos/badging/badging/contents/Template.DEI.md"
         );
         const template = Buffer.from(
-          template_content.data.content,
+          templateContent.data.content,
           "base64"
         ).toString();
 

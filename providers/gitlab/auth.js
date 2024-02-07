@@ -68,29 +68,29 @@ const requestAccessToken = async (code) => {
 const handleOAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
-  const { access_token, errors: access_token_errors } =
+  const { access_token: accessToken, errors: accessTokenErrors } =
     await requestAccessToken(code);
-  if (access_token_errors.length > 0) {
-    res.status(500).send(access_token_errors.join());
+  if (accessTokenErrors.length > 0) {
+    res.status(500).send(accessTokenErrors.join());
     return;
   }
 
   // Authenticated user details
-  const { user_info, errors: user_info_errors } = await getUserInfo(
-    access_token
+  const { user_info: userInfo, errors: userInfoErrors } = await getUserInfo(
+    accessToken
   );
-  if (user_info_errors.length > 0) {
-    res.status(500).send(user_info_errors.join());
+  if (userInfoErrors.length > 0) {
+    res.status(500).send(userInfoErrors.join());
     return;
   }
 
   // Save user to database
   const savedUser = await saveUser(
-    user_info.login,
-    user_info.name,
-    user_info.email,
+    userInfo.login,
+    userInfo.name,
+    userInfo.email,
     null,
-    user_info.id
+    userInfo.id
   );
   if (!savedUser) {
     res.status(500).send("Error saving user info");
@@ -98,10 +98,10 @@ const handleOAuthCallback = async (req, res) => {
   }
 
   // Public repos they maintain, administer, or own
-  const { repositories, errors: repositories_errors } =
-    await getUserRepositories(access_token);
-  if (repositories_errors.length > 0) {
-    res.status(500).send(repositories_errors.join());
+  const { repositories, errors: repositoriesErrors } =
+    await getUserRepositories(accessToken);
+  if (repositoriesErrors.length > 0) {
+    res.status(500).send(repositoriesErrors.join());
     return;
   }
 

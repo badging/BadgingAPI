@@ -1,6 +1,6 @@
 const sequelize = require("./sequelize");
 
-const dbconnect = async () => {
+const dbConnect = async () => {
   try {
     await sequelize.authenticate();
     try {
@@ -17,4 +17,4 @@ const dbconnect = async () => {
   }
 };
 
-module.exports = dbconnect;
+module.exports = dbConnect;

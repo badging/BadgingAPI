@@ -10,6 +10,7 @@ const getResults = async (octokit, payload) => {
     resultsArray.reviewerCount +
     "\n";
 
+  // comment results and badge on the issue
   await octokit.rest.issues
     .createComment({
       owner: payload.repository.owner.login,
