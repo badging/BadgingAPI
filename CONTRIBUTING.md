@@ -94,8 +94,36 @@ After generating those values,
 
 ## Code Style and Standards
 
-BadgingAPI follows a specific code style and coding standards. Please make sure to adhere to these standards when contributing.
+BadgingAPI follows a specific code style and coding standards. Please make sure to adhere to these standards when contributing:
 
+- **Variables and functions**: camelCase
+   ````markdown
+   myVariable = 10;
+   
+   function exampleFunction() {
+      return "Hello, World!"
+   };
+- **Classes and constructors**: PascalCase
+   ````markdown
+   class MyClass {
+      constructor(value) {
+         this.value = value;
+      }
+   };
+- **Filenames, constants, and environment variables**: Snake_case
+   ````markdown
+   my_file_name.txt
+
+   const MAX_ATTEMPTS = 5;
+
+   DATABASE_URL = "localhost:3000"
+- **HTML attributes and CSS class names**: Kebab-case
+   ````markdown
+   <div class="my-element"></div>
+
+   .my-element {
+      color: red;
+   };
 ### Issue Tracking
 
 If you're looking for ways to contribute but don't have specific code changes in mind, you can check the [issue tracker](https://github.com/badging/BadgingAPI/issues) for BadgingAPI on GitHub. You might find issues marked as "help wanted" or "good first issue."
