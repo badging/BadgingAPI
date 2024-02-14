@@ -156,7 +156,7 @@ const setupRoutes = (app) => {
   //callbacks
   githubAuthCallback(app);
   gitlabAuthCallback(app);
-  app.get("/api/badgedRepos", badgedRepos);
+  app.get("/api/badged-repos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
 
   app.get("*", (req, res) => {
@@ -164,7 +164,7 @@ const setupRoutes = (app) => {
   });
 
   // github app routes
-  app.post("/api/event_badging", async (req, res) => {
+  app.post("/api/event-badging", async (req, res) => {
     const {
       headers: { "x-github-event": name },
       body: payload,
