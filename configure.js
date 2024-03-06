@@ -64,8 +64,8 @@ const fs = require("fs");
       }),
 
       // Augur configuration
-      augur_client_secret: await input({
-        message: "Your Augur Client Secret: ",
+      augur_app_client_secret: await input({
+        message: "Your Augur App Client Secret: ",
       }),
       port: await input({
         message: "Port that you'd like server to run on: ",
@@ -108,7 +108,7 @@ const fs = require("fs");
         GITLAB_APP_CLIENT_SECRET=${values.gitlab_client_secret}
         GITLAB_APP_REDIRECT_URI=${values.gitlab_redirect_uri}
 
-        AUGUR_CLIENT_SECRET=${values.augur_client_secret}
+        AUGUR_APP_CLIENT_SECRET=${values.augur_app_client_secret}
         PORT=${values.port}
 
         EMAIL_HOST=${values.email_host}
