@@ -1,3 +1,4 @@
+const logger = require("./logger");
 const badgeLink =
   "https://raw.githubusercontent.com/badging/badging/main/src/assets/images/badges/bronze-badge.svg";
 
@@ -29,6 +30,8 @@ const awardBadge = async (octokit, owner, repoName) => {
     });
 
     console.log("Badge added to README successfully.");
+    // Log success message
+    logger.info("Badge added to README successfully.", { owner, repoName });
   } catch (error) {
     console.error("Error awarding badge:", error);
   }
