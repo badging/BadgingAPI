@@ -31,3 +31,25 @@ routes.setupRoutes(app);
     console.log(error);
   }
 })();
+
+/**
+ * The block of code below is only used in development mode.
+ * It is used to forward webhooks from GitHub to the local server.
+ * This is necessary because the local server is not publicly accessible.
+ * The smee.io service is used to forward the webhooks.
+ * The smee.io target URL is the local server's URL.
+ * The smee.io source URL is the GitHub webhook URL.
+ * The smee.io service is started using the smee.start() method.
+ *
+ */
+if (process.env.NODE_ENV === "development") {
+  const SmeeClient = require("smee-client");
+
+  const smee = new SmeeClient({
+    source: `${process.env.SMEECLIENT_URL}`,
+    target: `http://localhost:${process.env.PORT}/api/event_badging`,
+    logger: console,
+  });
+
+  smee.start();
+}
