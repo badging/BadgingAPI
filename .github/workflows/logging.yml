@@ -1,0 +1,133 @@
+name: Deploy Elasticsearch, Install Fluentd and Configure
+
+on: 
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/logging.yml'
+
+
+jobs:
+  deploy_elasticsearch_install_and_configure_fluentd:
+    runs-on: ubuntu-latest
+    env:
+      CLUSTER_NAME: ${{ secrets.ELASTICSEARCH_CLUSTER_NAME }}
+      ELASTICSEARCH_HOST: ${{ secrets.ELASTICSEARCH_HOST }}
+      ELASTICSEARCH_PORT: ${{ secrets.ELASTICSEARCH_PORT }}
+      ELASTICSEARCH_USERNAME: ${{ secrets.ELASTICSEARCH_USERNAME }}
+      ELASTICSEARCH_PASSWORD: ${{ secrets.ELASTICSEARCH_PASSWORD }}
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3 
+
+      - name: Check if Fluentd is installed
+        id: check_fluentd
+        run: |
+          if ! command -v td-agent &> /dev/null
+          then
+            echo "::set-output name=installed:: false"
+          else
+            echo "::set-output name=installed::true"
+          fi
+      
+      - name: Install Fluentd, copy config file, start service and open ports
+        if: steps.check_fluentd.outputs.installed == 'false'
+        uses: appleboy/ssh-action@v0.1.10
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            sudo apt-get update
+            sudo apt-get install -y gnupg2 curl
+            curl -sSL https://toolbelt.treasuredata.com/sh/install-ubuntu-focal-td-agent4.sh | sudo sh
+            cp fluentd.conf /etc/td-agent/fluentd.conf 
+            sudo systemctl start td-agent 
+      - name: Copy Config file to server and open ports
+        uses: appleboy/ssh-action@v0.1.10
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            sudo cp /etc/td-agent/fluentd.conf /etc/td-agent/fluentd.conf.bak
+            sudo cp fluentd.conf /etc/td-agent/fluentd.conf
+            sudo systemctl restart td-agent
+            sudo systemctl status td-agent
+            fluentd -c in_docker.conf
+      - name: Open specified ports on the server
+        uses: appleboy/ssh-action@v0.1.10
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            sudo ufw allow 9200 # Allow traffic on Elasticsearch port
+            sudo ufw allow 9300 # Allow traffic on Elasticsearch port(inter-node communication)
+            sudo ufw allow 5601 # Allow traffic on Kibana port
+            sudo ufw reload     # Reload firewall to apply changes
+      - name: Create Docker volume for Elasticsearch data
+        run: docker volume create elasticsearch_data
+
+      - name: Run Elasticsearch container with volume mount
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            docker run -d --name elasticsearch \
+            -p 9200:9200 -p 9300:9300 \
+            -e "discovery.type=single-node" \
+            -e "cluster.name=${{ env.CLUSTER_NAME }}" \
+            -v elasticsearch_data:/var/lib/elasticsearch/data
+            -v :/var/lib/elasticsearch/logs \
+            --restart=always \
+            docker.elastic.co/elasticsearch/elasticsearch:8.12.2           
+      - name: Wait for Elasticsearch to start
+        run: docker exec elasticsearch sh -c 'until curl -sSf localhost:9200; do sleep 1; done'
+
+      - name: Create and apply Index Lifesycle Management Policy(ILM) policy
+        run: |
+          curl -X PUT "localhost:9200/_ilm/policy/one_year_policy" -H 'Content-Type: application/json' -d'
+          {
+            "policy": {
+              "phases": {
+                "hot": {
+                  "actions": {
+                    "rollover": {
+                      "max_age": "30d"
+                    }
+                  }
+                },
+                "delete": {
+                  "min_age": "365d",
+                  "actions": {
+                    "delete": {}
+                  }
+                }
+              }
+            }
+          }'
+          curl -X PUT "localhost:9200/fluentd/_settings" -H 'Content-Type: application/json' -d'
+          {
+            "index": {
+              "lifecycle": {
+                "name": "one_year_policy"
+              }
+            }
+          }'
+      - name: Run Kibana Container
+        run: |
+          docker run -d --name kibana \
+          -p 5601:5601 \
+          -e "ELASTICSEARCH_USERNAME=${{ secrets.ELASTICSEARCH_USERNAME }}" \
+          -e "ELASTICSEARCH_PASSWORD=${{ secrets.ELASTICSEARCH_PASSWORD }}" \
+          -e "ELASTICSEARCH_HOSTS=http://elasticsearch:9200" \
+          --restart=always \
+          docker.elastic.co/kibana/kibana:8.12.2
+      - name: Wait for Kibana to start
+        run: docker exec kibana sh -c 'until curl -sSf localhost:5601; do sleep 1; done'

@@ -3,6 +3,7 @@ const Repo = require("../database/models/repo.model.js");
 const eventBadging = require("../event_badging/index.js");
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
+const logger = require("./logger");
 const {
   githubAuth,
   githubAuthCallback,
@@ -16,17 +17,33 @@ const {
  * @param {*} req - object containing the client req details.
  * @param {*} res - object used to send a redirect response.
  */
+
 const login = (req, res) => {
   const provider = req.query.provider;
 
   if (provider === "github") {
-    githubAuth(req, res);
+    githubAuth(req, res).then(userData => {
+      // Log successful login
+      logger.info(`User ${userData.login} logged in via Github`);
+    }).catch(error => {
+      console.error("Authentication error:", error);
+      res.status(500).send("Authentication failed");
+    });
   } else if (provider === "gitlab") {
-    gitlabAuth(req, res);
+    gitlabAuth(req, res).then(userData => {
+      // Log successful login
+      logger.info(`User ${userData.username} logged in via Gitlab`);
+    }).catch(error => {
+      console.error("Authentication error:", error);
+      res.status(500).send("Authentication failed");
+    });
   } else {
+    // Log unknown provider
+    logger.warn(`Unknown provider: ${provider}`);
     res.status(400).send(`Unknown provider: ${provider}`);
   }
 };
+
 
 const reposToBadge = async (req, res) => {
   const selectedRepos = (await req.body.repos) || [];
@@ -100,6 +117,9 @@ const reposToBadge = async (req, res) => {
 
 const badgedRepos = async (req, res) => {
   try {
+    // Log the start of the function execution
+    logger.info("Fetching badged repositories");
+
     // Use Sequelize to find all repos, excluding the DEICommitSHA field
     const repos = await Repo.findAll({
       attributes: { exclude: ["DEICommitSHA"] },
@@ -117,8 +137,15 @@ const badgedRepos = async (req, res) => {
       userId: repo.userId,
     }));
 
+    // Log the number of nadged repositories retrieved
+    logger.info(
+      "Number of badged repositories retrieved: ${formattedRepos.length}"
+    );
+
     res.json(formattedRepos);
   } catch (error) {
+    // Log error if an exception occurs during repository retrieval
+    logger.error("Error retrieving badged repositories", { error });
     res.status(500).json({ message: "Error retrieving repos", error });
   }
 };
