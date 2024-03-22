@@ -10,6 +10,8 @@ const {
   gitlabAuth,
   gitlabAuthCallback,
 } = require("../providers/index.js");
+const importFile = require("../helpers/importEvents.js");
+const upload = require("../helpers/multer.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -152,6 +154,9 @@ const setupRoutes = (app) => {
     gitlabAuth(req, res);
   });
   app.get("/api/login", login);
+  app.post("/api/import-events", upload.single("file"), (req, res) => {
+    importFile(req, res);
+  });
 
   //callbacks
   githubAuthCallback(app);

@@ -86,6 +86,11 @@ const fs = require("fs");
         message: "Your email app password:",
         mask: true,
       }),
+
+      // smee.io webhook configuration
+      smee_url: await input({
+        message: "Your smee.io webhook URL:",
+      }),
     };
 
     const envFile = `
@@ -114,6 +119,8 @@ const fs = require("fs");
         EMAIL_HOST=${values.email_host}
         EMAIL_ADDRESS=${values.email_address}
         EMAIL_PASSWORD=${values.email_password}
+
+        SMEECLIENT_URL=${values.smee_url}
     `;
 
     fs.writeFileSync(".env", envFile);
