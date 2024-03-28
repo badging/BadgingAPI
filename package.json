@@ -14,7 +14,8 @@
     "dev": "NODE_ENV=development node configure.js && NODE_ENV=development nodemon index.js",
     "start": "NODE_ENV=production node index.js",
     "prepare": "husky install",
-    "build": "webpack"
+    "build": "webpack",
+    "migrate-events": "NODE_ENV=production sh ./upload-data.sh"
   },
   "repository": {
     "type": "git",
@@ -33,14 +34,17 @@
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "express-http-proxy": "^2.0.0",
     "mongoose": "^7.4.1",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.6.0",
     "nodemailer": "^6.9.3",
     "nodemon": "^2.0.22",
     "octokit": "^2.1.0",
-    "sequelize": "^6.32.1"
+    "sequelize": "^6.32.1",
+    "smee-client": "^2.0.1"
   },
   "devDependencies": {
     "eslint-config-prettier": "^8.8.0",
