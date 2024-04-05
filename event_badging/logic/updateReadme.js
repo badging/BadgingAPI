@@ -42,7 +42,7 @@ const updateReadme = async (octokit, payload) => {
   const event = `[${eventName}](${eventLink})`;
 
   // get badge name
-  const badge = `![${resultsObj.assignedBadge}]`;
+  const badge = `![${resultsObj.assigned_badge}]`;
 
   // get array of assignees
   const reviewers = await payload.issue.assignees.map((assignee) => {

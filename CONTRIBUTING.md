@@ -36,7 +36,7 @@ Configure MySQL and make sure it is running on your machine before you proceed w
 
 1. You'll need to [create a GitHub OAuth App](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) on your personal GitHub account. Creating a GitHub OAuth App will automatically generate a `Client_ID` and will also enable you to generate a `Client_Secret` for your OAuth App. Store these values safely because they will be needed while generating a `.env` file for the first time.
 
-2. Create your personal [Augur Application](https://projectbadge.chaoss.io/account/settings?section=application) in order to generate an 'augur_client_secret'. Following the link, you will click on "register" and then fill in a couple of fields as required which will set up an account which you will log into. Click on your username(the one you filled in for the "user ID") at the top left and select "profile" which will take you to account settings. Under the account settings, in the left sidebar, click on "applications" and create a new application by entering an App name and a Redirect URL which will generate the `augur_client_secret` which will be listed in the last column of **_Your Apps_** table. Store the `augur_client_secret` together with the above GitHub OAuth credentials since it will be needed too while generating a `.env` file for the first time. The `augur_client_secret` which is the `AUGUR_CLIENT_SECRET` key is used to connect to the Augur API to submit repositories to the Augur Library for further badging.
+2. Create your personal [Augur Application](https://projectbadge.chaoss.io/account/settings?section=application) in order to generate an 'augur*client_secret'. Following the link, you will click on "register" and then fill in a couple of fields as required which will set up an account which you will log into. Click on your username(the one you filled in for the "user ID") at the top left and select "profile" which will take you to account settings. Under the account settings, in the left sidebar, click on "applications" and create a new application by entering an App name and a Redirect URL which will generate the `augur_client_secret` which will be listed in the last column of \*\*\_Your Apps*\*\* table. Store the `augur_client_secret` together with the above GitHub OAuth credentials since it will be needed too while generating a `.env` file for the first time. The `augur_client_secret` which is the `AUGUR_CLIENT_SECRET` key is used to connect to the Augur API to submit repositories to the Augur Library for further badging.
 
 After generating those values,
 
@@ -57,7 +57,7 @@ After generating those values,
       npm install # installs packages and dependencies
    ```
 
-2. **Make sure project is running**: This starts a *.env* configuration process if the *.env* file is missing.
+2. **Make sure project is running**: This starts a _.env_ configuration process if the _.env_ file is missing.
 
    ```bash
    npm run dev # this command will trigger a series of configuration questions in order setup your environmental variables
@@ -98,39 +98,43 @@ BadgingAPI follows a specific code style and coding standards. Please make sure 
 
 - **Variables and functions**: camelCase
 
-   ````markdown
-   myVariable = 10;
-   
-   function exampleFunction() {
-      return "Hello, World!"
-   };
+  ```markdown
+  myVariable = 10;
+
+  function exampleFunction() {
+  return "Hello, World!"
+  };
+  ```
 
 - **Classes and constructors**: PascalCase
 
-   ````markdown
-   class MyClass {
-      constructor(value) {
-         this.value = value;
-      }
-   };
+  ```markdown
+  class MyClass {
+  constructor(value) {
+  this.value = value;
+  }
+  };
+  ```
 
 - **Filenames, constants, and environment variables**: Snake_case
 
-   ````markdown
-   my_file_name.txt
+  ```markdown
+  my_file_name.txt
 
-   const MAX_ATTEMPTS = 5;
+  const MAX_ATTEMPTS = 5;
 
-   DATABASE_URL = "localhost:3000"
+  DATABASE_URL = "localhost:3000"
+  ```
 
 - **HTML attributes and CSS class names**: Kebab-case
 
-   ````markdown
-   <div class="my-element"></div>
+  ```markdown
+  <div class="my-element"></div>
 
-   .my-element {
-      color: red;
-   };
+  .my-element {
+  color: red;
+  };
+  ```
 
 ### Issue Tracking
 
