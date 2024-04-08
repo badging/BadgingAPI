@@ -82,7 +82,9 @@ const handleOAuthCallback = async (req, res) => {
   const octokit = new Octokit({ auth: `${accessToken}` });
 
   // Authenticated user details
-  const { user_info: userInfo, errors: userInfoErrors } = await getUserInfo(octokit);
+  const { user_info: userInfo, errors: userInfoErrors } = await getUserInfo(
+    octokit
+  );
   if (userInfoErrors.length > 0) {
     res.status(500).send(userInfoErrors.join());
     return;

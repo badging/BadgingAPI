@@ -42,9 +42,8 @@ routes.setupRoutes(app);
  * The smee.io service is started using the smee.start() method.
  *
  */
+const SmeeClient = require("smee-client");
 if (process.env.NODE_ENV === "development") {
-  const SmeeClient = require("smee-client");
-
   const smee = new SmeeClient({
     source: `${process.env.SMEECLIENT_URL}`,
     target: `http://localhost:${process.env.PORT}/api/event_badging`,

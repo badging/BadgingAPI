@@ -89,7 +89,8 @@ const calculateBadge = async (octokit, payload) => {
     htmlBadgeImage: htmlBadgeImage,
     reviewResult: reviewResult,
     reviewerCount: reviewerCount,
-    assignedBadge: badgeAssigned[0],
+    assigned_badge: badgeAssigned[0],
+    badge_URL: url,
   };
 
   return messageObj;
