@@ -4,7 +4,6 @@ const {
   // TODO: implement the help automation,
   endReview,
   assignChecklist,
-  updateReadme,
   saveEvent,
 } = require("./logic/index.js");
 
@@ -37,7 +36,6 @@ const eventBadging = async (name, octokit, payload) => {
     // when issue is closed, update the readme with the event
     if (name === "issues" && payload.action === "closed") {
       saveEvent(octokit, payload);
-      updateReadme(octokit, payload);
     }
   } else if (
     name === "installation" &&
