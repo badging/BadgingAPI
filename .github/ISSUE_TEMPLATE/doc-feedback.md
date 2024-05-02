@@ -1,7 +1,7 @@
 ---
 name: Doc feedback
-about: Create a detailed report to help us improve
-title: 'Briefly describe the improvement you''re requesting e.g. [DOC]: Improve clarity
+about: Help us improve the docs
+title: 'Briefly describe the improvement you are requesting e.g. [DOC]: Improve clarity
   of X'
 labels: ''
 assignees: ''
