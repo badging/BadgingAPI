@@ -78,19 +78,19 @@ const assignChecklist = async (octokit, payload) => {
       "\n" +
       body.slice(
         body.indexOf("## Diversity Access Tickets"),
-        body.indexOf("## Event Accessibility")) +
+        body.indexOf("## Event Accessibility")
+      ) +
       "\n" +
       checklist.slice(
         checklist.indexOf("### Diversity Access tickets"),
-        checklist.indexOf("## Event Accessibility")) +
-        "\n" +
-        "\n" +
-        body.slice(
-          body.indexOf("## Event Accessibility")) +
-        "\n" +
-        checklist.slice(
-          checklist.indexOf("## Event Accessibility")) +
-        "\n";
+        checklist.indexOf("### Event Accessibility")
+      ) +
+      "\n" +
+      "\n" +
+      body.slice(body.indexOf("## Event Accessibility")) +
+      "\n" +
+      checklist.slice(checklist.indexOf("### Event Accessibility")) +
+      "\n";
     /******************************************************************/
   } else {
     const {
@@ -165,45 +165,40 @@ const assignChecklist = async (octokit, payload) => {
       body.slice(
         body.indexOf("## Family Friendliness"),
         body.indexOf("## Event Accessibility")
-
-    ) +
+      ) +
       "\n" +
       checklist.slice(
-      checklist.indexOf("### Family Friendliness"),
-      checklist.indexOf("## Event Accessibility")) +
+        checklist.indexOf("### Family Friendliness"),
+        checklist.indexOf("### Event Accessibility")
+      ) +
       "\n" +
       "\n" +
       body.slice(
         body.indexOf("## Event Accessibility"),
         body.indexOf("## Event Location Inclusivity")
-
-    ) +
+      ) +
       "\n" +
       checklist.slice(
-      checklist.indexOf("### Event Accessiblity"),
-      checklist.indexOf("## Event Location Inclusivity"))+
+        checklist.indexOf("### Event Accessibility"),
+        checklist.indexOf("### Event Location Inclusivity")
+      ) +
       "\n" +
       "\n" +
       body.slice(
         body.indexOf("## Event Location Inclusivity"),
         body.indexOf("## Public Health and Safety")
-
-    ) +
+      ) +
       "\n" +
       checklist.slice(
-      checklist.indexOf("### Event Location Inclusivity"),
-      checklist.indexOf("## Public Health and Safety"))+
+        checklist.indexOf("### Event Location Inclusivity"),
+        checklist.indexOf("### Public Health and Safety")
+      ) +
       "\n" +
       "\n" +
-      body.slice(
-        body.indexOf("##Public Health and Safety")
-
-    ) +
+      body.slice(body.indexOf("## Public Health and Safety")) +
       "\n" +
-      checklist.slice(
-      checklist.indexOf("### Public Health and Safety")
-     )+
-     "\n";
+      checklist.slice(checklist.indexOf("### Public Health and Safety")) +
+      "\n";
     /******************************************************************/
   }
 
