@@ -15,6 +15,10 @@ const Event = sequelize.define("events", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  event_type: {
+    type: DataTypes.ENUM("Virtual Event", "In-Person Event"),
+    allowNull: false,
+  },
   badge: {
     type: DataTypes.JSON,
     allowNull: false,

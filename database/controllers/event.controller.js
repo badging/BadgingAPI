@@ -2,11 +2,13 @@ const Event = require("../models/event.model");
 
 const createEvent = async (event) => {
   try {
-    const { event_name, event_URL, badge, reviewers, application } = event;
+    const { event_name, event_URL, event_type, badge, reviewers, application } =
+      event;
 
     const newEvent = await Event.create({
       event_name,
       event_URL,
+      event_type,
       badge,
       reviewers,
       application,

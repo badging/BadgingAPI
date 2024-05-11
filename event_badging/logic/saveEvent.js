@@ -6,6 +6,7 @@ const saveEvent = async (octokit, payload) => {
 
   const event_name = payload.issue.title.replace(/\[(.*?)\] /gi, "");
   let event_URL;
+  let event_type;
   if (payload.issue.title.includes("[Virtual Event]")) {
     event_URL = await payload.issue.body
       .slice(
@@ -15,6 +16,7 @@ const saveEvent = async (octokit, payload) => {
         ) - 2
       )
       .replace("- Link to the Event Website: ", "");
+    event_type = "Virtual Event";
   }
 
   if (payload.issue.title.includes("[In-Person Event]")) {
@@ -24,6 +26,7 @@ const saveEvent = async (octokit, payload) => {
         payload.issue.body.indexOf("- Are you an organizer ") - 2
       )
       .replace("- Link to the Event Website: ", "");
+    event_type = "In-Person Event";
   }
   // get badge name
   const badge = {
@@ -48,6 +51,7 @@ const saveEvent = async (octokit, payload) => {
     const newEvent = {
       event_name,
       event_URL,
+      event_type,
       badge,
       reviewers,
       application,
