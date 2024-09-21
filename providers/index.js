@@ -1,4 +1,8 @@
 const {
+  issueCreationCallback,
+  issueCreationAuth,
+} = require("./event-github/auth.js");
+const {
   githubAuth,
   githubAuthCallback,
   githubApp,
@@ -11,4 +15,6 @@ module.exports = {
   githubApp,
   gitlabAuth,
   gitlabAuthCallback,
+  issueCreationAuth,
+  issueCreationCallback,
 };
