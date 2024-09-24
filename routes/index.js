@@ -10,8 +10,6 @@ const {
   githubApp,
   gitlabAuth,
   gitlabAuthCallback,
-  issueCreationCallback,
-  issueCreationAuth,
 } = require("../providers/index.js");
 
 /**
@@ -151,6 +149,11 @@ const setupRoutes = (app) => {
     githubAuth(req, res);
   });
 
+  // for event badging
+  app.post("/api/auth/github", (req, res) => {
+    githubAuth(req, res);
+  });
+
   app.get("/api/auth/gitlab", (req, res) => {
     gitlabAuth(req, res);
   });
@@ -161,7 +164,6 @@ const setupRoutes = (app) => {
   gitlabAuthCallback(app);
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
-  app.get("/api/issue-callback", issueCreationCallback);
 
   // github app routes
   app.post("/api/event_badging", async (req, res) => {
@@ -175,10 +177,6 @@ const setupRoutes = (app) => {
     eventBadging(name, octokit, payload);
     console.info(`Received ${name} event from Github`);
     res.send("ok");
-  });
-
-  app.post("/api/submit-form", (req, res) => {
-    issueCreationAuth(req, res);
   });
 
   // route to get all events
