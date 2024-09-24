@@ -50,7 +50,7 @@ const issueCreationCallback = async (req, res) => {
     const octokit = new Octokit({ auth: accessToken });
 
     const { data: issue } = await octokit.rest.issues.create({
-      owner: "desmondsanctity",
+      owner: "badging",
       repo: "event-diversity-and-inclusion",
       title: issueTitle,
       body: markdown,
