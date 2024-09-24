@@ -4,6 +4,11 @@ require("dotenv").config();
 const axios = require("axios");
 const { saveUser } = require("../../database/controllers/user.controller.js");
 const { getUserInfo, getUserRepositories } = require("./APICalls.js");
+const {
+  encrypt,
+  decrypt,
+  convertToMarkdown,
+} = require("../../helpers/crypto.js");
 
 // instantiate Github App for event handling (webhooks)
 const githubApp = new App({
@@ -21,17 +26,28 @@ const githubApp = new App({
  * @param {*} res Response to send back to the caller
  */
 const githubAuth = (req, res) => {
+  const { type } = req.body;
   if (!process.env.GITHUB_AUTH_CLIENT_ID) {
     res.status(500).send("GitHub provider is not configured");
     return;
   }
 
-  const scopes = ["user", "repo"];
-  const url = `https://github.com/login/oauth/authorize?client_id=${
-    process.env.GITHUB_AUTH_CLIENT_ID
-  }&scope=${scopes.join(",")}`;
+  if (type === "event-badging") {
+    const scopes = ["repo"];
+    const encryptedFormData = encrypt(JSON.stringify(req.body));
+    const url = `https://github.com/login/oauth/authorize?client_id=${
+      process.env.GITHUB_AUTH_CLIENT_ID
+    }&scope=${scopes.join(",")}&state=${encryptedFormData}`;
 
-  res.redirect(url);
+    res.send({ authorizationLink: url });
+  } else {
+    const scopes = ["user", "repo"];
+    const url = `https://github.com/login/oauth/authorize?client_id=${
+      process.env.GITHUB_AUTH_CLIENT_ID
+    }&scope=${scopes.join(",")}`;
+
+    res.redirect(url);
+  }
 };
 
 /**
@@ -72,6 +88,17 @@ const requestAccessToken = async (code) => {
 const handleOAuthCallback = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
+  let issueTitle;
+  let markdown;
+
+  if (req.query.state) {
+    const encryptedState = req.query.state;
+    const formData = decrypt(encryptedState);
+    const parsedFormData = JSON.parse(formData);
+    issueTitle = parsedFormData.title;
+    markdown = convertToMarkdown(parsedFormData.body);
+  }
+
   const { access_token: accessToken, errors: accessTokenErrors } =
     await requestAccessToken(code);
   if (accessTokenErrors.length > 0) {
@@ -80,6 +107,18 @@ const handleOAuthCallback = async (req, res) => {
   }
 
   const octokit = new Octokit({ auth: `${accessToken}` });
+
+  if (issueTitle && markdown) {
+    const { data: issue } = await octokit.rest.issues.create({
+      owner: "badging",
+      repo: "event-diversity-and-inclusion",
+      title: issueTitle,
+      body: markdown,
+    });
+
+    res.redirect(issue.html_url);
+    return;
+  }
 
   // Authenticated user details
   const { user_info: userInfo, errors: userInfoErrors } = await getUserInfo(
