@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const dbConnect = require("./database/helpers/dbconnect");
+// const dbConnect = require("./database/helpers/dbconnect");
 const routes = require("./routes/index.js");
 require("dotenv").config();
 
@@ -22,11 +22,11 @@ routes.setupRoutes(app);
 
 (async () => {
   try {
-    await dbConnect().then(() => {
-      app.listen(process.env.PORT, () => {
-        console.log(`server listening on port ${process.env.PORT}`);
-      });
+    // await dbConnect().then(() => {
+    app.listen(process.env.PORT, () => {
+      console.log(`server listening on port ${process.env.PORT}`);
     });
+    // });
   } catch (error) {
     console.log(error);
   }
