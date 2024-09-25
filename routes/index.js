@@ -161,7 +161,7 @@ const setupRoutes = (app) => {
   app.get("/api/login", login);
 
   //callbacks
-  app.post("/api/callback/github", handleOAuthCallback);
+  app.get("/api/callback/github", handleOAuthCallback);
   githubAuthCallback(app);
   gitlabAuthCallback(app);
   app.get("/api/badgedRepos", badgedRepos);
