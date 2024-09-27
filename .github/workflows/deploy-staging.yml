@@ -38,7 +38,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          source: badging.tar
+          source: badging-staging.tar
           target: ~/
 
       - name: Extract and load image on droplet
