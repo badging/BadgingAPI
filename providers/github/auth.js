@@ -209,5 +209,6 @@ const githubAuthCallback = (app) => {
 module.exports = {
   githubAuth,
   githubAuthCallback,
+  handleOAuthCallback,
   githubApp,
 };
