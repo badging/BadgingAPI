@@ -11,7 +11,6 @@ const {
   gitlabAuth,
   gitlabAuthCallback,
 } = require("../providers/index.js");
-const { handleOAuthCallback } = require("../providers/github/auth.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -161,7 +160,6 @@ const setupRoutes = (app) => {
   app.get("/api/login", login);
 
   //callbacks
-  app.get("/api/callback/github", handleOAuthCallback);
   githubAuthCallback(app);
   gitlabAuthCallback(app);
   app.get("/api/badgedRepos", badgedRepos);
