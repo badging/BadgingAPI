@@ -4,13 +4,9 @@ const eventBadging = require("../event_badging/index.js");
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const { getAllEvents } = require("../database/controllers/event.controller.js");
-const {
-  githubAuth,
-  githubAuthCallback,
-  githubApp,
-  gitlabAuth,
-  gitlabAuthCallback,
-} = require("../providers/index.js");
+const { githubAuth, githubApp, gitlabAuth } = require("../providers/index.js");
+const { handleOAuthCallback } = require("../providers/github/auth.js");
+const { handleOAuthCallbackGitlab } = require("../providers/gitlab/auth.js");
 
 /**
  * Redirects the user to the GitHub OAuth login page for authentication.
@@ -160,8 +156,18 @@ const setupRoutes = (app) => {
   app.get("/api/login", login);
 
   //callbacks
-  githubAuthCallback(app);
-  gitlabAuthCallback(app);
+  if (process.env.NODE_ENV === "production") {
+    app.post("/api/callback/github", handleOAuthCallback);
+  } else if (process.env.NODE_ENV === "development") {
+    app.get("/api/callback/github", handleOAuthCallback);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    app.post("/api/callback/gitlab", handleOAuthCallbackGitlab);
+  } else if (process.env.NODE_ENV === "development") {
+    app.get("/api/callback/gitlab", handleOAuthCallbackGitlab);
+  }
+
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
 

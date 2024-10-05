@@ -194,21 +194,8 @@ const handleOAuthCallback = async (req, res) => {
   }
 };
 
-/**
- * Sets up the provided Express app routes for GitLab
- * @param {*} app Express application instance
- */
-const githubAuthCallback = (app) => {
-  if (process.env.NODE_ENV === "production") {
-    app.post("/api/callback/github", handleOAuthCallback);
-  } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/github", handleOAuthCallback);
-  }
-};
-
 module.exports = {
   githubAuth,
-  githubAuthCallback,
   handleOAuthCallback,
   githubApp,
 };
