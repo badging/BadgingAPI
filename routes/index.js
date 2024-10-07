@@ -156,17 +156,8 @@ const setupRoutes = (app) => {
   app.get("/api/login", login);
 
   //callbacks
-  if (process.env.NODE_ENV === "production") {
-    app.post("/api/callback/github", handleOAuthCallback);
-  } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/github", handleOAuthCallback);
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    app.post("/api/callback/gitlab", handleOAuthCallbackGitlab);
-  } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/gitlab", handleOAuthCallbackGitlab);
-  }
+  app.post("/api/callback/github", handleOAuthCallback);
+  app.post("/api/callback/gitlab", handleOAuthCallbackGitlab);
 
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
