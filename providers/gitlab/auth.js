@@ -65,7 +65,7 @@ const requestAccessToken = async (code) => {
  * @returns A json object with `user_info` and `errors`
  * */
 
-const handleOAuthCallback = async (req, res) => {
+const handleOAuthCallbackGitlab = async (req, res) => {
   const code = req.body.code ?? req.query.code;
 
   const { access_token: accessToken, errors: accessTokenErrors } =
@@ -152,19 +152,7 @@ const handleOAuthCallback = async (req, res) => {
   }
 };
 
-/**
- * Sets up the provided Express app routes for GitLab
- * @param {*} app Express application instance
- */
-const gitlabAuthCallback = (app) => {
-  if (process.env.NODE_ENV === "production") {
-    app.post("/api/callback/gitlab", handleOAuthCallback);
-  } else if (process.env.NODE_ENV === "development") {
-    app.get("/api/callback/gitlab", handleOAuthCallback);
-  }
-};
-
 module.exports = {
   gitlabAuth,
-  gitlabAuthCallback,
+  handleOAuthCallbackGitlab,
 };
