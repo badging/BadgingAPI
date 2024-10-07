@@ -1,11 +1,11 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: 'Please provide a concise and informative title that summarizes the issue:
-  e.g. [FEATURE]: [Describe the desired feature]'
+title:
+  "Please provide a concise and informative title that summarizes the issue:
+  e.g. [FEATURE]: [Describe the desired feature]"
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
 
 **Is your feature request related to a problem? Please describe.**
