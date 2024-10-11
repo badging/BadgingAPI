@@ -33,7 +33,7 @@ const githubAuth = (req, res) => {
   }
 
   if (type === "event-badging") {
-    const scopes = ["repo"];
+    const scopes = ["public_repo"];
     const encryptedFormData = encrypt(JSON.stringify(req.body));
     const url = `https://github.com/login/oauth/authorize?client_id=${
       process.env.GITHUB_AUTH_CLIENT_ID
@@ -41,7 +41,7 @@ const githubAuth = (req, res) => {
 
     res.send({ authorizationLink: url });
   } else {
-    const scopes = ["user", "repo"];
+    const scopes = ["user", "public_repo"];
     const url = `https://github.com/login/oauth/authorize?client_id=${
       process.env.GITHUB_AUTH_CLIENT_ID
     }&scope=${scopes.join(",")}`;
