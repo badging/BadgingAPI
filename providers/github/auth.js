@@ -41,7 +41,7 @@ const githubAuth = (req, res) => {
 
     res.send({ authorizationLink: url });
   } else {
-    const scopes = ["user", "public_repo"];
+    const scopes = ["read:user", "user:email", "public_repo"];
     const url = `https://github.com/login/oauth/authorize?client_id=${
       process.env.GITHUB_AUTH_CLIENT_ID
     }&scope=${scopes.join(",")}`;
