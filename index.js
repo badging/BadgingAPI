@@ -48,6 +48,7 @@ if (process.env.NODE_ENV === "development") {
     source: `${process.env.SMEE_CLIENT_URL}`,
     target: `http://localhost:${process.env.PORT}/api/event_badging`,
     logger: console,
+    reconnect: true,
   });
 
   smee.start();

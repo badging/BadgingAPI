@@ -2,19 +2,13 @@ const { input, password } = require("@inquirer/prompts");
 const fs = require("fs");
 
 (async () => {
-  if (!fs.existsSync(__dirname + "/.env")) {
+  if (!fs.existsSync(__dirname + "/.denv")) {
     console.info(
-      "Please input the fields below to configure your project locally"
+      "\x1b[31mPLEASE READ AND FOLLOW CAREFULLY TO RUN PROJECT SUCCESSFULLY\x1b[0m",
+      "\n\nTo get the \x1b[1mGitHub AppID\x1b[0m, \x1b[1mClientID\x1b[0m, \x1b[1mClientSecret\x1b[0m, \x1b[1mWebhookSecret\x1b[0m and \x1b[1mPrivateKey\x1b[0m, create your personal GitHub App by following the instructions in this link: \x1b[34mhttps://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app\x1b[0m",
+      "\n\n copy and paste the values in the prompts below\n\n"
     );
     const values = {
-      // Github OAuth configuration
-      github_auth_client_ID: await input({
-        message: "Your personal Github OAuth App Client ID: ",
-      }),
-      github_auth_client_secret: await input({
-        message: "Your personal Github OAuth App Client Secret:",
-      }),
-
       // GitHub App configuration
       github_app_id: await input({
         message: "Your personal Github App ID: ",
@@ -28,12 +22,21 @@ const fs = require("fs");
         message: "Your personal Github App Client Secret:",
       }),
 
-      github_app_private_key: await input({
-        message: "Your personal Github App Private Key:",
-      }),
-
       github_app_webhook_secret: await input({
         message: "Your personal Github App Webhook Secret:",
+      }),
+
+      github_app_private_key: await input({
+        message:
+          "Your personal Github App Private Key (starts with -----BEGIN PRIVATE... and ends with ...END PRIVATE-----):",
+      }),
+
+      // Github OAuth configuration
+      github_auth_client_ID: await input({
+        message: "Your personal Github OAuth App Client ID: ",
+      }),
+      github_auth_client_secret: await input({
+        message: "Your personal Github OAuth App Client Secret:",
       }),
 
       // Gitlab OAuth configuration
@@ -86,7 +89,7 @@ const fs = require("fs");
         GITHUB_APP_CLIENT_ID=${values.github_app_client_ID}
         GITHUB_APP_CLIENT_SECRET=${values.github_app_client_secret}
         GITHUB_APP_WEBHOOK_SECRET=${values.github_app_webhook_secret}
-        GITHUB_APP_PRIVATE_KEY=${values.github_app_private_key}
+        GITHUB_APP_PRIVATE_KEY="${values.github_app_private_key}"
 
         GITLAB_APP_CLIENT_ID=${values.gitlab_client_ID}
         GITLAB_APP_CLIENT_SECRET=${values.gitlab_client_secret}
