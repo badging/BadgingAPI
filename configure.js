@@ -7,22 +7,6 @@ const fs = require("fs");
       "Please input the fields below to configure your project locally"
     );
     const values = {
-      // database configuration
-      db_name: await input({ message: "Your  database name:" }),
-      db_user: await input({ message: "Your database user name:" }),
-      db_password: await password({
-        message: "Input your database password:",
-        mask: true,
-      }),
-      db_host: await input({
-        message: "MySQL database host address:",
-        default: "localhost",
-      }),
-      db_dialect: await input({
-        message: "Your database dialect:",
-        default: "mysql",
-      }),
-
       // Github OAuth configuration
       github_auth_client_ID: await input({
         message: "Your personal Github OAuth App Client ID: ",
@@ -89,11 +73,11 @@ const fs = require("fs");
     };
 
     const envFile = `
-        DB_NAME=${values.db_name}
-        DB_USER=${values.db_user}
-        DB_PASSWORD=${values.db_password}
-        DB_HOST=${values.db_host}
-        DB_DIALECT=${values.db_dialect}
+        DB_NAME=badging
+        DB_USER=badging
+        DB_PASSWORD=badging
+        DB_HOST=localhost
+        DB_DIALECT=mysql
 
         GITHUB_AUTH_CLIENT_ID=${values.github_auth_client_ID}
         GITHUB_AUTH_CLIENT_SECRET=${values.github_auth_client_secret}

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Server Side Development for ProjectBadging",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "lint": "npx eslint .",
     "lint:fix": "npm run lint -- --fix",
@@ -12,10 +11,11 @@
     "precommit": "lint-staged",
     "format": "npm run prettier:fix && npm run lint:fix",
     "test": "npm run test",
-    "dev": "NODE_ENV=development node configure.js && NODE_ENV=development nodemon index.js",
+    "configure": "NODE_ENV=development node configure.js && NODE_ENV=development sh ./setup.sh",
     "start": "NODE_ENV=production node index.js",
     "prepare": "husky install",
-    "build": "webpack"
+    "build": "webpack",
+    "dev": "NODE_ENV=development nodemon index.js"
   },
   "repository": {
     "type": "git",
