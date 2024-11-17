@@ -1,9 +1,6 @@
-const getResults = require("./getResults");
-const endReview = require("./endReview");
-const help = require("./help");
-const welcome = require("./welcome");
 const assignChecklist = require("./assignChecklist");
-const saveEvent = require("./saveEvent");
+const help = require("./help");
+const { welcome, saveEvent, getResults, endReview } = require("./eventBadging");
 
 module.exports = {
   welcome,
