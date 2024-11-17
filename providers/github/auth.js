@@ -2,7 +2,7 @@ const { Octokit } = require("@octokit/rest");
 const { App } = require("octokit");
 require("dotenv").config();
 const axios = require("axios");
-const { saveUser } = require("../../database/controllers/user.controller.js");
+const { saveUser } = require("../../controllers/userController.js");
 const { getUserInfo, getUserRepositories } = require("./APICalls.js");
 const {
   encrypt,

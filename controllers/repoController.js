@@ -1,5 +1,5 @@
-const Repo = require("../../models/Repo");
-const User = require("../../models/User");
+const Repo = require("../models/Repo");
+const User = require("../models/User");
 
 const saveRepo = async (
   githubRepoId,

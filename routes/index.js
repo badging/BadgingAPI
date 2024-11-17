@@ -1,4 +1,4 @@
-const { getAllEvents } = require("../database/controllers/event.controller.js");
+const { getAllEvents } = require("../controllers/eventController.js");
 const { handleOAuthCallback } = require("../providers/github/auth.js");
 const { handleOAuthCallbackGitlab } = require("../providers/gitlab/auth.js");
 const { githubAuth, gitlabAuth } = require("../providers/index.js");
@@ -8,7 +8,7 @@ const {
   badgedRepos,
   handleEventBadging,
   healthCheck,
-} = require("../controllers/api.controller.js");
+} = require("../controllers/apiController.js");
 
 // Route groups
 const authRoutes = (app) => {

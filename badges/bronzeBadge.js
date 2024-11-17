@@ -1,6 +1,6 @@
 const augurAPI = require("../helpers/augurAPI");
 const mailer = require("../helpers/mailer");
-const saveRepo = require("../database/controllers/repo.controller");
+const saveRepo = require("../controllers/repoController");
 
 const bronzeBadge = async (
   userId,

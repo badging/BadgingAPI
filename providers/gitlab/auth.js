@@ -1,4 +1,4 @@
-const { saveUser } = require("../../database/controllers/user.controller.js");
+const { saveUser } = require("../../controllers/userController.js");
 const { getUserInfo, getUserRepositories } = require("./APICalls.js");
 const axios = require("axios");
 

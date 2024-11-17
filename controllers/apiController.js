@@ -1,7 +1,7 @@
 // Database imports
-const { findUser } = require("../database/controllers/user.controller.js");
+const { findUser } = require("./userController.js");
 const Repo = require("../models/Repo.js");
-const { createEvent } = require("../database/controllers/event.controller.js");
+const { createEvent } = require("./eventController.js");
 
 // Provider imports
 const github_helpers = require("../providers/github/APICalls.js");
