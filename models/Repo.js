@@ -1,7 +1,7 @@
 // models/Repo.js
 const { DataTypes } = require("sequelize");
-const sequelize = require("../helpers/sequelize");
-const User = require("./user.model");
+const sequelize = require("../database/helpers/sequelize");
+const User = require("./User");
 
 const Repo = sequelize.define("repos", {
   githubRepoId: {

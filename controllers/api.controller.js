@@ -1,6 +1,6 @@
 // Database imports
 const { findUser } = require("../database/controllers/user.controller.js");
-const Repo = require("../database/models/repo.model.js");
+const Repo = require("../models/Repo.js");
 const { createEvent } = require("../database/controllers/event.controller.js");
 
 // Provider imports

@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Repo = require("../../database/models/repo.model.js");
+const Repo = require("../../models/Repo.js");
 const bronzeBadge = require("../../badges/bronzeBadge.js");
 const mailer = require("../../helpers/mailer.js");
 
