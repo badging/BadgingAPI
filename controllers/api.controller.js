@@ -1,5 +1,8 @@
+// Database imports
 const { findUser } = require("../database/controllers/user.controller.js");
 const Repo = require("../database/models/repo.model.js");
+
+// Event badging imports
 const {
   welcome,
   getResults,
@@ -7,186 +10,136 @@ const {
   assignChecklist,
   saveEvent,
 } = require("../event_badging/logic/index.js");
+
+// Provider imports
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const { githubAuth, githubApp, gitlabAuth } = require("../providers/index.js");
 
-const login = (req, res) => {
-  const provider = req.query.provider;
+// Error handling utility
+const handleError = (res, statusCode, message) => {
+  return res.status(statusCode).json({ error: message });
+};
 
-  if (provider === "github") {
-    githubAuth(req, res);
-  } else if (provider === "gitlab") {
-    gitlabAuth(req, res);
-  } else {
-    res.status(400).send(`Unknown provider: ${provider}`);
+const login = (req, res) => {
+  const { provider } = req.query;
+
+  switch (provider) {
+    case "github":
+      return githubAuth(req, res);
+    case "gitlab":
+      return gitlabAuth(req, res);
+    default:
+      return handleError(res, 400, `Unknown provider: ${provider}`);
   }
 };
 
+const scanRepositories = async (user, provider, repos) => {
+  const helpers = provider === "github" ? github_helpers : gitlab_helpers;
+  return await helpers.scanRepositories(user.id, user.name, user.email, repos);
+};
+
 const reposToBadge = async (req, res) => {
-  const selectedRepos = (await req.body.repos) || [];
-  const userId = req.body.userId;
-  const provider = req.body.provider;
-  const repositoryIds = selectedRepos.map((repo) => repo.id);
-  if (!provider) {
-    res.status(400).send("provider missing");
-    return;
+  const { repos = [], userId, provider } = req.body;
+  const repositoryIds = repos.map((repo) => repo.id);
+
+  if (!provider || !userId) {
+    return handleError(res, 400, "Missing required parameters");
   }
 
-  if (!userId) {
-    res.status(400).send("userId missing");
-    return;
-  }
-
-  let user = null;
   try {
-    user = await findUser(userId);
+    const user = await findUser(userId);
     if (!user) {
-      res.status(404).json("User not found");
-      return;
+      return handleError(res, 404, "User not found");
     }
-  } catch (error) {
-    res.status(500).json("Error fetching user data");
-    return;
-  }
 
-  // Process the selected repos as needed
-  if (process.env.NODE_ENV === "development") {
-    if (provider === "github") {
-      const results = await github_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        selectedRepos
-      );
-      res.status(200).json({ results });
-    } else if (provider === "gitlab") {
-      const results = await gitlab_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        selectedRepos
-      );
-      res.status(200).json({ results });
-    }
-  } else if (process.env.NODE_ENV === "production") {
-    // process the selected repositories in production
-    if (provider === "github") {
-      const results = await github_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        repositoryIds
-      );
-      res.status(200).json({ results });
-    } else if (provider === "gitlab") {
-      const results = await gitlab_helpers.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        repositoryIds
-      );
-      res.status(200).json({ results });
-    }
-  } else {
-    res.status(400).send(`Unknown provider: ${provider}`);
+    const reposToScan =
+      process.env.NODE_ENV === "production" ? repositoryIds : repos;
+    const results = await scanRepositories(user, provider, reposToScan);
+    return res.status(200).json({ results });
+  } catch (error) {
+    return handleError(res, 500, "Error processing repositories");
   }
 };
 
 const badgedRepos = async (req, res) => {
   try {
-    // Use Sequelize to find all repos, excluding the DEICommitSHA field
     const repos = await Repo.findAll({
       attributes: { exclude: ["DEICommitSHA"] },
     });
 
-    // Extract the relevant information from the repos
-    const formattedRepos = repos.map((repo) => ({
-      id: repo.id,
-      githubRepoId: repo.githubRepoId,
-      repoLink: repo.repoLink,
-      badgeType: repo.badgeType,
-      attachment: repo.attachment,
-      createdAt: repo.createdAt,
-      updatedAt: repo.updatedAt,
-      userId: repo.userId,
-    }));
+    const formattedRepos = repos.map(
+      ({
+        id,
+        githubRepoId,
+        repoLink,
+        badgeType,
+        attachment,
+        createdAt,
+        updatedAt,
+        userId,
+      }) => ({
+        id,
+        githubRepoId,
+        repoLink,
+        badgeType,
+        attachment,
+        createdAt,
+        updatedAt,
+        userId,
+      })
+    );
 
-    res.json(formattedRepos);
+    return res.json(formattedRepos);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving repos", error });
+    return handleError(res, 500, "Error retrieving repos");
   }
 };
 
 const handleEventBadging = async (req, res) => {
   const {
-    headers: { "x-github-event": name },
+    headers: { "x-github-event": eventName },
     body: payload,
   } = req;
-  const octokit = await githubApp.getInstallationOctokit(
-    payload.installation.id
-  );
 
-  // perform actions on application issues only
-  if (payload.issue?.title.match(/event/i)) {
-    // when applicant issue is open, welcome the applicant
-    if (name === "issues" && payload.action === "opened") {
-      welcome(octokit, payload);
-    }
-
-    // when issue is assigned, trigger the assign algorithm
-    if (name === "issues" && payload.action === "assigned") {
-      assignChecklist(octokit, payload);
-    }
-
-    // comment commands
-    if (name === "issue_comment" && payload.action === "created") {
-      // get results
-      if (payload.comment.body.match("/result")) {
-        getResults(octokit, payload);
-      }
-
-      // end review
-      if (payload.comment.body.match("/end")) {
-        endReview(octokit, payload);
-      }
-    }
-
-    // when issue is closed, update the readme with the event
-    if (name === "issues" && payload.action === "closed") {
-      saveEvent(octokit, payload);
-    }
-  } else if (
-    name === "installation" &&
-    payload.action === "new_permissions_accepted"
-  ) {
-    console.info("New permissions accepted");
-  } else if (name === "*") {
-    console.info(
-      `Webhook: ${name}.${payload.action} not yet automated or needed`
+  try {
+    const octokit = await githubApp.getInstallationOctokit(
+      payload.installation.id
     );
-  }
 
-  console.info(`Received ${name} event from Github`);
-  res.send("ok");
+    if (payload.issue?.title.match(/event/i)) {
+      const eventHandlers = {
+        issues: {
+          opened: () => welcome(octokit, payload),
+          assigned: () => assignChecklist(octokit, payload),
+          closed: () => saveEvent(octokit, payload),
+        },
+        issue_comment: {
+          created: () => {
+            if (payload.comment.body.match("/result"))
+              return getResults(octokit, payload);
+            if (payload.comment.body.match("/end"))
+              return endReview(octokit, payload);
+          },
+        },
+      };
+
+      const handler = eventHandlers[eventName]?.[payload.action];
+      if (handler) await handler();
+    }
+
+    console.info(`Received ${eventName} event from Github`);
+    return res.send("ok");
+  } catch (error) {
+    return handleError(res, 500, "Error processing GitHub event");
+  }
 };
 
 const healthCheck = (req, res) => {
   try {
-    res.json({ message: "Project Badging server up and running" });
+    return res.json({ message: "Project Badging server up and running" });
   } catch (error) {
-    console.error(error);
-    if (error.statusCode && error.statusCode !== 200) {
-      res.status(error.statusCode).json({
-        error: "Error",
-        message: "our bad, something is wrong with the server configuration",
-      });
-    } else {
-      res.status(500).json({
-        error: "Internal Server Error",
-        message: "An unexpected error occurred at our end",
-      });
-    }
+    return handleError(res, 500, "Server health check failed");
   }
 };
 
