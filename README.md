@@ -9,5 +9,6 @@ Server side development of the DEI Project Badging focusing on scripting, databa
 - mysql
 
 steps
+
 - how do setup mysql
-    running `npm run dev:init` creates a default user called 'badging' with a password 'badging'. a database is also created called 'badging' and assigned to that user. you can change these configurations by editing the .env file parameters that is generated 
+  running `npm run dev:init` creates a default user called 'badging' with a password 'badging'. a database is also created called 'badging' and assigned to that user. you can change these configurations by editing the .env file parameters that is generated

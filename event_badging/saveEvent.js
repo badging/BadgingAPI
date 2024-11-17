@@ -1,4 +1,4 @@
-const { createEvent } = require("../../database/controllers/event.controller");
+const { createEvent } = require("../database/controllers/event.controller");
 const calculateBadge = require("./calculate.badge.js");
 
 const saveEvent = async (octokit, payload) => {

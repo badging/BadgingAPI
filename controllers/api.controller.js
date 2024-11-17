@@ -9,7 +9,7 @@ const {
   endReview,
   assignChecklist,
   saveEvent,
-} = require("../event_badging/logic/index.js");
+} = require("../event_badging/index.js");
 
 // Provider imports
 const github_helpers = require("../providers/github/APICalls.js");
