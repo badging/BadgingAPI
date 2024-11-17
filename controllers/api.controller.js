@@ -8,6 +8,8 @@ const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const { githubAuth, githubApp, gitlabAuth } = require("../providers/index.js");
 
+const assignChecklist = require("./assignChecklist.js");
+
 // Error handling utility
 const handleError = (res, statusCode, message) => {
   return res.status(statusCode).json({ error: message });
@@ -335,6 +337,7 @@ const handleEventBadging = async (req, res) => {
       const eventHandlers = {
         issues: {
           opened: () => welcome(octokit, payload),
+          assigned: () => assignChecklist(octokit, payload),
           closed: () => saveEvent(octokit, payload),
         },
         issue_comment: {
