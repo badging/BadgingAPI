@@ -10,30 +10,37 @@ const {
   healthCheck,
 } = require("../controllers/api.controller.js");
 
-const setupRoutes = (app) => {
-  app.get("/api", healthCheck);
-
-  // Auth routes
+// Route groups
+const authRoutes = (app) => {
   app.get("/api/auth/github", githubAuth);
   app.post("/api/auth/github", githubAuth);
   app.get("/api/auth/gitlab", gitlabAuth);
   app.get("/api/login", login);
-
-  // OAuth callbacks
   app.get("/api/callback/github", handleOAuthCallback);
   app.get("/api/callback/gitlab", handleOAuthCallbackGitlab);
+};
 
-  // Repository routes
+const repoRoutes = (app) => {
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
+};
 
-  // Event badging routes
+const eventRoutes = (app) => {
   app.post("/api/event_badging", handleEventBadging);
   app.get("/api/badged_events", getAllEvents);
+};
+
+const setupRoutes = (app) => {
+  app.get("/api", healthCheck);
+
+  // Apply route groups
+  authRoutes(app);
+  repoRoutes(app);
+  eventRoutes(app);
 
   // 404 handler
-  app.get("*", (req, res) => {
-    res.status(404).send("Endpoint not found or unresponsive");
+  app.all("*", (req, res) => {
+    res.status(404).json({ error: "Endpoint not found" });
   });
 };
 
