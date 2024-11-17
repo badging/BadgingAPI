@@ -1,6 +1,12 @@
 const { findUser } = require("../database/controllers/user.controller.js");
 const Repo = require("../database/models/repo.model.js");
-const eventBadging = require("../event_badging/index.js");
+const {
+  welcome,
+  getResults,
+  endReview,
+  assignChecklist,
+  saveEvent,
+} = require("../event_badging/logic/index.js");
 const github_helpers = require("../providers/github/APICalls.js");
 const gitlab_helpers = require("../providers/gitlab/APICalls.js");
 const { githubAuth, githubApp, gitlabAuth } = require("../providers/index.js");
@@ -120,7 +126,47 @@ const handleEventBadging = async (req, res) => {
   const octokit = await githubApp.getInstallationOctokit(
     payload.installation.id
   );
-  eventBadging(name, octokit, payload);
+
+  // perform actions on application issues only
+  if (payload.issue?.title.match(/event/i)) {
+    // when applicant issue is open, welcome the applicant
+    if (name === "issues" && payload.action === "opened") {
+      welcome(octokit, payload);
+    }
+
+    // when issue is assigned, trigger the assign algorithm
+    if (name === "issues" && payload.action === "assigned") {
+      assignChecklist(octokit, payload);
+    }
+
+    // comment commands
+    if (name === "issue_comment" && payload.action === "created") {
+      // get results
+      if (payload.comment.body.match("/result")) {
+        getResults(octokit, payload);
+      }
+
+      // end review
+      if (payload.comment.body.match("/end")) {
+        endReview(octokit, payload);
+      }
+    }
+
+    // when issue is closed, update the readme with the event
+    if (name === "issues" && payload.action === "closed") {
+      saveEvent(octokit, payload);
+    }
+  } else if (
+    name === "installation" &&
+    payload.action === "new_permissions_accepted"
+  ) {
+    console.info("New permissions accepted");
+  } else if (name === "*") {
+    console.info(
+      `Webhook: ${name}.${payload.action} not yet automated or needed`
+    );
+  }
+
   console.info(`Received ${name} event from Github`);
   res.send("ok");
 };
