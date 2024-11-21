@@ -159,6 +159,9 @@ const setupRoutes = (app) => {
   app.get("/api/callback/github", handleOAuthCallback);
   app.get("/api/callback/gitlab", handleOAuthCallbackGitlab);
 
+  app.post("/api/callback/github", handleOAuthCallback);
+  app.post("/api/callback/gitlab", handleOAuthCallbackGitlab);
+
   app.get("/api/badgedRepos", badgedRepos);
   app.post("/api/repos-to-badge", reposToBadge);
 

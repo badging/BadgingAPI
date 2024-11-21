@@ -36,7 +36,7 @@ const githubAuth = (req, res) => {
     const scopes = ["public_repo"];
     const encryptedFormData = encrypt(JSON.stringify(req.body));
     const url = `https://github.com/login/oauth/authorize?client_id=${
-      process.env.GITHUB_AUTH_CLIENT_ID
+      process.env.GITHUB_AUTH_CLIENT_ID_EVENT
     }&scope=${scopes.join(",")}&state=${encryptedFormData}`;
 
     res.send({ authorizationLink: url });
@@ -55,15 +55,19 @@ const githubAuth = (req, res) => {
  * @param {*} code Code returned by the GitHub OAuth authorization API
  * @returns A json object with `access_token` and `errors`
  */
-const requestAccessToken = async (code) => {
+const requestAccessToken = async (code, isEventBadging = false) => {
   try {
     const {
       data: { access_token },
     } = await axios.post(
       "https://github.com/login/oauth/access_token",
       {
-        client_id: process.env.GITHUB_AUTH_CLIENT_ID,
-        client_secret: process.env.GITHUB_AUTH_CLIENT_SECRET,
+        client_id: isEventBadging
+          ? process.env.GITHUB_AUTH_CLIENT_ID_EVENT
+          : process.env.GITHUB_AUTH_CLIENT_ID,
+        client_secret: isEventBadging
+          ? process.env.GITHUB_AUTH_CLIENT_SECRET_EVENT
+          : process.env.GITHUB_AUTH_CLIENT_SECRET,
         code,
       },
       {
@@ -90,6 +94,7 @@ const handleOAuthCallback = async (req, res) => {
 
   let issueTitle;
   let markdown;
+  let isEventBadging = false;
 
   if (req.query.state) {
     const encryptedState = req.query.state;
@@ -97,10 +102,11 @@ const handleOAuthCallback = async (req, res) => {
     const parsedFormData = JSON.parse(formData);
     issueTitle = parsedFormData.title;
     markdown = convertToMarkdown(parsedFormData.body);
+    isEventBadging = true;
   }
 
   const { access_token: accessToken, errors: accessTokenErrors } =
-    await requestAccessToken(code);
+    await requestAccessToken(code, isEventBadging);
   if (accessTokenErrors.length > 0) {
     res.status(500).send(accessTokenErrors.join());
     return;
