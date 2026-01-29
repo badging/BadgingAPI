@@ -1,7 +1,22 @@
-FROM node:16
+FROM node:22-alpine
+
 WORKDIR /app
+
+# Copy package files
 COPY package*.json ./
-RUN npm install
-COPY . .
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY src/ ./src/
+
+# Build TypeScript
+RUN npm run build
+
+# Expose the port
 EXPOSE 2020
-CMD [ "npm", "start" ]
+
+# Start the application
+CMD ["npm", "start"]

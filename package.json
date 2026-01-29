@@ -1,58 +1,77 @@
 {
-  "name": "badgingapi",
-  "version": "1.0.0",
-  "description": "Server Side Development for ProjectBadging",
-  "main": "index.js",
-  "scripts": {
-    "lint": "npx eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "prettier": "npx prettier . --check",
-    "prettier:fix": "npm run prettier -- --write",
-    "precommit": "lint-staged",
-    "format": "npm run prettier:fix && npm run lint:fix",
-    "test": "npm run test",
-    "dev": "NODE_ENV=development node configure.js && NODE_ENV=development nodemon index.js",
-    "start": "NODE_ENV=production node index.js",
-    "prepare": "husky install",
-    "build": "webpack"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/badging/BadgingAPI.git"
-  },
-  "author": "CHAOSS",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/badging/BadgingAPI/issues"
-  },
-  "homepage": "https://github.com/badging/BadgingAPI#readme",
-  "dependencies": {
-    "@inquirer/prompts": "^3.3.0",
-    "@octokit/rest": "^19.0.11",
-    "axios": "^1.4.0",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-http-proxy": "^2.0.0",
-    "mongoose": "^7.4.1",
-    "mysql2": "^3.6.0",
-    "nodemailer": "^6.9.3",
-    "nodemon": "^2.0.22",
-    "octokit": "^2.1.0",
-    "sequelize": "^6.32.1",
-    "turndown": "^7.2.0"
-  },
-  "devDependencies": {
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-html": "^7.1.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "eslint-plugin-prettier": "^4.2.1",
-    "husky": "^8.0.3",
-    "jsonlint": "^1.6.3",
-    "lint-staged": "^13.2.3",
-    "prettier": "^2.8.8",
-    "smee-client": "^2.0.1"
-  }
+ "name": "badging-api",
+ "version": "2.0.0",
+ "description": "Server Side Development for DEI Badging - Refactored with TypeScript",
+ "main": "dist/index.js",
+ "scripts": {
+  "build": "tsc",
+  "start": "NODE_ENV=production node dist/index.js",
+  "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only src/index.ts",
+  "configure": "ts-node src/scripts/configure.ts",
+  "lint": "eslint src/**/*.ts",
+  "lint:fix": "eslint src/**/*.ts --fix",
+  "typecheck": "tsc --noEmit",
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:coverage": "jest --coverage"
+ },
+ "repository": {
+  "type": "git",
+  "url": "git+https://github.com/badging/BadgingAPI.git"
+ },
+ "author": "CHAOSS",
+ "license": "MIT",
+ "bugs": {
+  "url": "https://github.com/badging/BadgingAPI/issues"
+ },
+ "homepage": "https://github.com/badging/BadgingAPI#readme",
+ "dependencies": {
+  "@octokit/rest": "^20.0.2",
+  "axios": "^1.6.2",
+  "class-transformer": "^0.5.1",
+  "class-validator": "^0.14.0",
+  "cors": "^2.8.5",
+  "dotenv": "^16.3.1",
+  "express": "^4.18.2",
+  "mysql2": "^3.6.5",
+  "nodemailer": "^6.9.7",
+  "octokit": "^3.1.2",
+  "pg": "^8.11.3",
+  "pg-hstore": "^2.3.4",
+  "reflect-metadata": "^0.2.1",
+  "routing-controllers": "^0.10.4",
+  "sequelize": "^6.35.2",
+  "sequelize-typescript": "^2.1.6",
+  "turndown": "^7.1.2",
+  "typedi": "^0.10.0"
+ },
+ "devDependencies": {
+  "@inquirer/prompts": "^7.2.0",
+  "@types/cors": "^2.8.17",
+  "@types/express": "^4.17.21",
+  "@types/jest": "^29.5.11",
+  "@types/node": "^20.10.5",
+  "@types/nodemailer": "^6.4.14",
+  "@types/turndown": "^5.0.4",
+  "@typescript-eslint/eslint-plugin": "^6.15.0",
+  "@typescript-eslint/parser": "^6.15.0",
+  "eslint": "^8.56.0",
+  "eslint-config-prettier": "^9.1.0",
+  "eslint-plugin-prettier": "^5.1.2",
+  "husky": "^9.1.7",
+  "jest": "^29.7.0",
+  "lint-staged": "^15.5.2",
+  "prettier": "^3.1.1",
+  "smee-client": "^2.0.1",
+  "ts-jest": "^29.1.1",
+  "ts-node": "^10.9.2",
+  "ts-node-dev": "^2.0.0",
+  "typescript": "^5.3.3"
+ },
+ "lint-staged": {
+  "src/**/*.ts": [
+   "eslint --fix",
+   "prettier --write"
+  ]
+ }
 }

@@ -1,4 +1,12 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npm run precommit
+# Run type checking first - fail fast if types are broken
+echo "🔍 Running type check..."
+npm run typecheck || exit 1
+
+# Run lint-staged for staged files (lint + format)
+echo "✨ Running lint-staged..."
+npx lint-staged || exit 1
+
+echo "✅ Pre-commit checks passed!"
