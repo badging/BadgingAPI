@@ -132,3 +132,9 @@ report*
 deploy.tests.yml
 
 /tmp/mysql/*
+
+#ignore .vscode 
+.vscode/
+
+
+
