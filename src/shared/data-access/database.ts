@@ -13,7 +13,7 @@ export class Database {
     this.sequelize = new Sequelize({
       database: getEnvVar('DB_NAME'),
       username: getEnvVar('DB_USER'),
-      password: getEnvVar('DB_PASSWORD'),
+      password: isDevelopment() ? getEnvVar('DB_PASSWORD', false) : getEnvVar('DB_PASSWORD', true),
       host: getEnvVar('DB_HOST'),
       dialect: getEnvVar('DB_DIALECT') as 'mysql' | 'postgres' | 'sqlite' | 'mariadb',
       models: [User, Repo, Event],

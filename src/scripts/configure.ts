@@ -6,7 +6,7 @@ interface ConfigValues {
   // Database configuration
   db_name: string;
   db_user: string;
-  db_password: string;
+  db_password?: string;
   db_host: string;
   db_port: string;
 
@@ -62,7 +62,7 @@ async function configure(): Promise<void> {
     // Database configuration
     db_name: await input({ message: 'Database name:', default: 'badging' }),
     db_user: await input({ message: 'Database user name:', default: 'postgres' }),
-    db_password: await password({ message: 'Database password:', mask: true }),
+    db_password: await password({ message: 'Database password (optional):', mask: true }) || undefined,
     db_host: await input({ message: 'Database host address:', default: 'localhost' }),
     db_port: await input({ message: 'Database port:', default: '5432' }),
 
@@ -123,7 +123,8 @@ DB_HOST=${values.db_host}
 DB_PORT=${values.db_port}
 DB_NAME=${values.db_name}
 DB_USER=${values.db_user}
-DB_PASSWORD=${values.db_password}
+${values.db_password ? `DB_PASSWORD=${values.db_password}` : ''}
+//DB_PASSWORD=${values.db_password}
 
 # GitHub OAuth (for project badging)
 GITHUB_CLIENT_ID=${values.github_auth_client_id}

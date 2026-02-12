@@ -10,7 +10,7 @@ export interface IEnvironmentConfig {
   DB_HOST: string;
   DB_NAME: string;
   DB_USER: string;
-  DB_PASSWORD: string;
+  DB_PASSWORD?: string;
   DB_DIALECT: 'mysql' | 'postgres' | 'sqlite' | 'mariadb';
 
   // GitHub OAuth (Project Badging)
