@@ -123,8 +123,8 @@ export class AuthService {
 
       const result = await this.githubApiService.createIssue(
         octokit,
-        'badging',
-        'event-diversity-and-inclusion',
+        'adeyinkaoresanya',
+        'sandbox-event-dei',
         parsedFormData.title,
         markdown
       );

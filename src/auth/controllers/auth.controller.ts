@@ -1,6 +1,15 @@
-import { JsonController, Get, Post, QueryParam, Body, Res, Redirect } from 'routing-controllers';
+import {
+  JsonController,
+  Get,
+  Post,
+  QueryParam,
+  Body,
+  Res,
+  Redirect,
+  Req,
+} from 'routing-controllers';
 import { Service } from 'typedi';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { Provider } from '../../shared/types';
 import { isDevelopment, isProduction } from '../../shared/config/environment';
@@ -26,7 +35,7 @@ export class AuthController {
       return response.status(500).json({ error: result.errors.join(', ') });
     }
 
-    response.redirect(result.data);
+    return response.redirect(result.data) as unknown as Response;
   }
 
   /**
@@ -74,7 +83,7 @@ export class AuthController {
       return response.status(500).json({ error: result.errors.join(', ') });
     }
 
-    response.redirect(result.data);
+    return response.redirect(result.data) as unknown as Response;
   }
 
   /**
@@ -98,9 +107,10 @@ export class AuthController {
   @Get('/callback/github')
   async callbackGitHubGet(
     @QueryParam('code') code: string,
-    @QueryParam('state') state: string | undefined,
+    @Req() request: Request,
     @Res() response: Response
   ): Promise<Response | void> {
+    const state = request.query.state as string | undefined;
     return this.handleGitHubCallback(code, state, response);
   }
 
@@ -112,9 +122,10 @@ export class AuthController {
   async callbackGitHubPost(
     @Body() body: { code?: string },
     @QueryParam('code') queryCode: string | undefined,
-    @QueryParam('state') state: string | undefined,
+    @Req() request: Request,
     @Res() response: Response
   ): Promise<Response | void> {
+    const state = request.query.state as string | undefined;
     const code = body.code || queryCode;
     if (!code) {
       return response.status(400).json({ error: 'Code is required' });
@@ -171,8 +182,7 @@ export class AuthController {
 
     // Event badging callback - redirect to issue URL
     if ('issueUrl' in result.data) {
-      response.redirect(result.data.issueUrl);
-      return;
+      return response.redirect(result.data.issueUrl) as unknown as Response;
     }
 
     // Project badging callback - return user data

@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { createExpressServer, useContainer } from 'routing-controllers';
 import { Container } from 'typedi';
 import express, { Express, Request, Response } from 'express';
-import cors from 'cors';
 import path from 'path';
 
 // Import controllers
@@ -26,7 +25,6 @@ export function createApp(): Express {
   }) as Express;
 
   // Additional middleware
-  app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
