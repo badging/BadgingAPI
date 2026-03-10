@@ -33,6 +33,9 @@ export interface IEnvironmentConfig {
   GITLAB_APP_CLIENT_SECRET: string;
   GITLAB_APP_REDIRECT_URI: string;
 
+  //repository for event badging
+  REPOSITORY_NAME: string;
+
   // Email
   EMAIL_HOST: string;
   EMAIL_ADDRESS: string;

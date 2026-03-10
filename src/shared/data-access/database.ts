@@ -16,6 +16,7 @@ export class Database {
       password: isDevelopment() ? getEnvVar('DB_PASSWORD', false) : getEnvVar('DB_PASSWORD', true),
       host: getEnvVar('DB_HOST'),
       dialect: getEnvVar('DB_DIALECT') as 'mysql' | 'postgres' | 'sqlite' | 'mariadb',
+      port: parseInt(getEnvVar('DB_PORT', '3306'), 10),
       models: [User, Repo, Event],
       logging: isDevelopment() ? console.log : false,
     });
