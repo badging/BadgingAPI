@@ -1,5 +1,6 @@
 import { Service } from 'typedi';
 import { Octokit } from 'octokit';
+import { getEnvVar, isDevelopment } from '../../shared/config/environment';
 import { GitHubApiService } from '../../shared/providers/github/github-api.service';
 import { BadgeLevel, IBadgeCalculationResult } from '../../shared/types';
 
@@ -19,8 +20,9 @@ export class ScoringService {
     repoName: string
   ): Promise<IBadgeCalculationResult> {
     // Determine initial check count based on repository
+    const targetRepoName = isDevelopment() ? 'sandbox-event-dei' : getEnvVar('REPOSITORY_NAME');
     let initialCheckCount = 6;
-    if (repoName === 'event-diversity-and-inclusion') {
+    if (repoName === targetRepoName) {
       initialCheckCount = 4;
     }
 
