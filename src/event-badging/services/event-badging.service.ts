@@ -212,23 +212,35 @@ export class EventBadgingService {
 
       // Extract event URL from body
       let eventUrl = '';
-      if (payload.issue.title.includes('[Virtual Event]')) {
-        const startMarker = '- Link to the Event Website: ';
-        const endMarker = '- Provide verification that you are an event organizer: ';
-        const startIdx = payload.issue.body.indexOf(startMarker);
-        const endIdx = payload.issue.body.indexOf(endMarker);
-        if (startIdx !== -1 && endIdx !== -1) {
-          eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
-        }
+     if (payload.issue.title.includes('[Virtual Event]')) {
+  const startMarker = '- Link to the Event Website: ';
+  const endMarker = '- Provide verification that you are an event organizer: ';
+  const startIdx = payload.issue.body.indexOf(startMarker);
+  const endIdx = payload.issue.body.indexOf(endMarker);
+
+  if (startIdx !== -1 && endIdx !== -1) {
+    // slice after startMarker, up to endIdx
+    eventUrl = payload.issue.body.slice(
+      startIdx + startMarker.length, 
+      endIdx
+    ).trim();
+  }
+
       } else if (payload.issue.title.includes('[In-Person Event]')) {
-        const startMarker = '- Link to the Event Website: ';
-        const endMarker = '- Are you an organizer ';
-        const startIdx = payload.issue.body.indexOf(startMarker);
-        const endIdx = payload.issue.body.indexOf(endMarker);
-        if (startIdx !== -1 && endIdx !== -1) {
-          eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
-        }
-      }
+  const startMarker = '- Link to the Event Website: ';
+  const endMarker = '- Are you an organizer ';
+  const startIdx = payload.issue.body.indexOf(startMarker);
+  const endIdx = payload.issue.body.indexOf(endMarker);
+
+  if (startIdx !== -1 && endIdx !== -1) {
+    // Slice after startMarker up to endIdx
+    eventUrl = payload.issue.body.slice(
+      startIdx + startMarker.length,
+      endIdx
+    ).trim();
+  }
+}
+      
 
       // Create badge object
       const badge: IEventBadge = {
