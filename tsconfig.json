@@ -3,9 +3,9 @@
     "target": "ES2022",
     "module": "commonjs",
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "jest"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    //"rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -23,7 +23,8 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": "./src",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "./",
     "paths": {
       "@shared/*": ["shared/*"],
       "@auth/*": ["auth/*"],
@@ -31,6 +32,6 @@
       "@event-badging/*": ["event-badging/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
