@@ -4,15 +4,17 @@ import {
   Post,
   QueryParam,
   Body,
-  Res,
   Redirect,
-  Req,
+  BadRequestError,
+  InternalServerError,
+  ContentType,
+  Res,
 } from 'routing-controllers';
+import { Response } from 'express';
 import { Service } from 'typedi';
-import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { Provider } from '../../shared/types';
-import { isDevelopment, isProduction } from '../../shared/config/environment';
+import { isProduction } from '../../shared/config/environment';
 
 @JsonController('/api')
 @Service()
@@ -20,252 +22,303 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   /**
-   * GET /api/login
-   * Redirects to the appropriate OAuth provider login page
+   * LOGIN ENTRY
    */
   @Get('/login')
-  login(@QueryParam('provider') provider: Provider, @Res() response: Response): Response | void {
-    if (!provider) {
-      return response.status(400).json({ error: 'Provider is required' });
-    }
+  @Redirect(':url')
+  login(@QueryParam('provider') provider: Provider) {
+    if (!provider) throw new BadRequestError('Provider is required');
 
     const result = this.authService.getLoginUrl(provider);
 
-    if (result.errors.length > 0 || !result.data) {
-      return response.status(500).json({ error: result.errors.join(', ') });
+    if (result.errors.length || !result.data) {
+      throw new InternalServerError(result.errors.join(', '));
     }
 
-    return response.redirect(result.data) as unknown as Response;
+    return { url: result.data };
   }
 
   /**
-   * GET /api/auth/github
-   * Redirect to GitHub OAuth
+   * PROVIDER LOGIN
    */
-  @Get('/auth/github')
-  @Redirect('')
-  authGitHub(): string {
-    const result = this.authService.getLoginUrl('github');
-    if (result.errors.length > 0 || !result.data) {
-      throw new Error(result.errors.join(', '));
+
+
+@Get('/auth/github')
+// @Redirect('')
+authGitHub(@Res() res: Response): void {
+  const result = this.authService.getLoginUrl('github');
+
+  if (result.errors.length || !result.data) {
+    throw new InternalServerError(result.errors.join(', '));
+  }
+  res.redirect(result.data);
+  return;
+
+  // return {
+  //   url: result.data,
+  //   statusCode: 302
+  // };
+
+}
+
+  @Get('/auth/gitlab')
+  @Redirect(':url')
+  authGitLab() {
+    const result = this.authService.getLoginUrl('gitlab');
+
+    if (result.errors.length || !result.data) {
+      throw new InternalServerError(result.errors.join(', '));
     }
-    return result.data;
+
+    return { url: result.data };
   }
 
   /**
-   * POST /api/auth/github
-   * Handle event badging GitHub auth (returns authorization link)
+   * EVENT BADGING AUTH
    */
+
   @Post('/auth/github')
   authGitHubEventBadging(
-    @Body() body: { type?: string; title?: string; body?: string },
-    @Res() response: Response
-  ): Response | void {
+    @Body() body: { type?: string; title?: string; body?: string }
+  ) {
     if (body.type === 'event-badging') {
       if (!body.title || !body.body) {
-        return response
-          .status(400)
-          .json({ error: 'Title and body are required for event badging' });
+        throw new BadRequestError('Title and body are required');
       }
 
-      const result = this.authService.getEventBadgingAuthUrl(body.title, body.body);
+      const result = this.authService.getEventBadgingAuthUrl(
+        body.title,
+        body.body
+      );
 
-      if (result.errors.length > 0 || !result.data) {
-        return response.status(500).json({ error: result.errors.join(', ') });
+      if (result.errors.length || !result.data) {
+        throw new InternalServerError(result.errors.join(', '));
       }
 
-      return response.json({ authorizationLink: result.data });
+      return { authorizationLink: result.data };
     }
 
-    // For non-event-badging, redirect to GitHub OAuth
     const result = this.authService.getLoginUrl('github');
-    if (result.errors.length > 0 || !result.data) {
-      return response.status(500).json({ error: result.errors.join(', ') });
+
+    if (result.errors.length || !result.data) {
+      throw new InternalServerError(result.errors.join(', '));
     }
 
-    return response.redirect(result.data) as unknown as Response;
+    return { redirectUrl: result.data };
   }
 
   /**
-   * GET /api/auth/gitlab
-   * Redirect to GitLab OAuth
+   * CALLBACKS
    */
-  @Get('/auth/gitlab')
-  @Redirect('')
-  authGitLab(): string {
-    const result = this.authService.getLoginUrl('gitlab');
-    if (result.errors.length > 0 || !result.data) {
-      throw new Error(result.errors.join(', '));
-    }
-    return result.data;
-  }
 
-  /**
+ /**
    * GET /api/callback/github
-   * Handle GitHub OAuth callback
+   * Ensure we pass @Res() and return Promise<void>
    */
   @Get('/callback/github')
   async callbackGitHubGet(
     @QueryParam('code') code: string,
-    @Req() request: Request,
-    @Res() response: Response
-  ): Promise<Response | void> {
-    const state = request.query.state as string | undefined;
-    return this.handleGitHubCallback(code, state, response);
+    @QueryParam('state') state: string,
+    @Res() response: Response // Inject the response object
+  ): Promise<void> {
+    await this.handleGitHubCallback(code, state, response);
+    return; // Explicitly return nothing so the framework stops here
   }
 
   /**
    * POST /api/callback/github
-   * Handle GitHub OAuth callback (POST variant)
+   * Consistency is key: use the same Res pattern
    */
   @Post('/callback/github')
   async callbackGitHubPost(
     @Body() body: { code?: string },
-    @QueryParam('code') queryCode: string | undefined,
-    @Req() request: Request,
+    @QueryParam('code') queryCode: string,
+    @QueryParam('state') state: string,
     @Res() response: Response
-  ): Promise<Response | void> {
-    const state = request.query.state as string | undefined;
+  ): Promise<void> {
     const code = body.code || queryCode;
-    if (!code) {
-      return response.status(400).json({ error: 'Code is required' });
-    }
-    return this.handleGitHubCallback(code, state, response);
+    await this.handleGitHubCallback(code, state, response);
+    return;
   }
 
-  /**
-   * GET /api/callback/gitlab
-   * Handle GitLab OAuth callback
-   */
   @Get('/callback/gitlab')
-  async callbackGitLabGet(
-    @QueryParam('code') code: string,
-    @Res() response: Response
-  ): Promise<Response> {
-    return this.handleGitLabCallback(code, response);
+  async callbackGitLabGet(@QueryParam('code') code: string) {
+    return this.handleGitLabCallback(code);
   }
 
-  /**
-   * POST /api/callback/gitlab
-   * Handle GitLab OAuth callback (POST variant)
-   */
   @Post('/callback/gitlab')
   async callbackGitLabPost(
     @Body() body: { code?: string },
-    @QueryParam('code') queryCode: string | undefined,
-    @Res() response: Response
-  ): Promise<Response> {
+    @QueryParam('code') queryCode: string
+  ) {
     const code = body.code || queryCode;
-    if (!code) {
-      return response.status(400).json({ error: 'Code is required' });
-    }
-    return this.handleGitLabCallback(code, response);
+    return this.handleGitLabCallback(code);
   }
 
   /**
-   * Common handler for GitHub OAuth callback
+   * HANDLERS
    */
-  private async handleGitHubCallback(
-    code: string,
-    state: string | undefined,
-    response: Response
-  ): Promise<Response | void> {
-    if (!code) {
-      return response.status(400).json({ error: 'Code is required' });
-    }
 
+  private async handleGitHubCallback(code: string, state: string | undefined, res: Response): Promise<void> {
+    if (!code) {
+    res.status(400).json({ error: 'Code is required' });
+    return; // STOP HERE
+  }
+    
     const result = await this.authService.handleGitHubCallback(code, state);
-
+    
     if (result.errors.length > 0 || !result.data) {
-      return response.status(500).json({ error: result.errors.join(', ') });
+      res.status(500).json({ error: result.errors.join(', ') });
+      return;
     }
 
-    // Event badging callback - redirect to issue URL
     if ('issueUrl' in result.data) {
-      return response.redirect(result.data.issueUrl) as unknown as Response;
+      res.redirect(result.data.issueUrl);
+      return; // Stop execution here
     }
 
-    // Project badging callback - return user data
+    // For JSON or HTML, send it and return void
     if (isProduction()) {
-      return response.status(200).json(result.data);
+      res.status(200).json(result.data);
+      return;
     }
 
-    // Development mode - render HTML form
-    if (isDevelopment()) {
-      const data = result.data;
-      return response.status(200).send(this.renderDevRepoForm(data, 'github'));
-    }
-
-    return response.status(500).json({ error: 'Unknown process mode' });
+    res.status(200).send(this.renderDevRepoForm(result.data, 'github'));
+    return;
   }
 
-  /**
-   * Common handler for GitLab OAuth callback
-   */
-  private async handleGitLabCallback(code: string, response: Response): Promise<Response> {
-    if (!code) {
-      return response.status(400).json({ error: 'Code is required' });
-    }
+  private async handleGitLabCallback(code: string) {
+    if (!code) throw new BadRequestError('Code is required');
 
     const result = await this.authService.handleGitLabCallback(code);
 
-    if (result.errors.length > 0 || !result.data) {
-      return response.status(500).json({ error: result.errors.join(', ') });
+    if (result.errors.length || !result.data) {
+      throw new InternalServerError(result.errors.join(', '));
     }
 
     if (isProduction()) {
-      return response.status(200).json(result.data);
+      return result.data;
     }
 
-    // Development mode - render HTML form
-    if (isDevelopment()) {
-      return response.status(200).send(this.renderDevRepoForm(result.data, 'gitlab'));
-    }
-
-    return response.status(500).json({ error: 'Unknown process mode' });
+    return this.renderDevRepoForm(result.data, 'gitlab');
   }
 
   /**
-   * Render development HTML form for repository selection
+   * DEV HTML RENDERER
    */
-  private renderDevRepoForm(
-    data: {
-      userId: number;
-      name: string;
-      username: string;
-      email: string;
-      repos: Array<{ id: number; fullName: string }>;
-    },
-    provider: string
-  ): string {
-    return `
-      <html>
-      <head>
-        <title>Repo List</title>
-      </head>
+
+@ContentType('text/html')
+private renderDevRepoForm(
+  data: {
+    userId: number;
+    name: string;
+    username: string;
+    email: string;
+    repos: Array<{ id: number; fullName: string }>;
+  },
+  provider: string
+): string {
+  return `
+<html>
+<head>
+  <title>Select Repositories</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1, h2, h3 { margin: 5px 0; }
+    .repo { margin: 5px 0; }
+    button { margin-top: 10px; padding: 8px 12px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome ${data.name}</h1>
+  <h3>Username: ${data.username}</h3>
+  <h3>Email: ${data.email}</h3>
+
+  <form id="reposForm">
+    <input type="hidden" name="provider" value="${provider}">
+    <input type="hidden" name="userId" value="${data.userId}">
+
+    <h2>Select Repositories:</h2>
+    ${data.repos
+      .map(
+        (repo) => `
+      <div class="repo">
+        <input type="checkbox" name="repos[]" value="${repo.id}" id="repo-${repo.id}">
+        <label for="repo-${repo.id}">${repo.fullName}</label>
+      </div>
+    `
+      )
+      .join('')}
+
+    <button type="submit">Scan Projects</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('reposForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const payload = {
+        provider: formData.get('provider'),
+        userId: Number(formData.get('userId')),
+        repos: formData.getAll('repos[]').map(id => ({ id: Number(id) }))
+      };
+
+      try {
+        const res = await fetch('/api/repos-to-badge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          alert('Error: ' + text);
+          return;
+        }
+
+        const json = await res.json();
+
+        // Redirect to success page with query parameters
+        const params = new URLSearchParams({
+          provider: payload.provider,
+          userId: payload.userId,
+          name: '${data.name}',
+          email: '${data.email}'
+        }).toString();
+
+        window.location.href = '/api/project-badging-successful?' + params;
+
+      } catch (err) {
+        alert('Network error: ' + err);
+      }
+    });
+  </script>
+</body>
+</html>
+  `;
+}
+
+
+@Get('/project-badging-successful')
+@ContentType('text/html')
+projectBadgingSuccessful(
+  @QueryParam('provider') provider: string,
+  @QueryParam('userId') userId: string,
+  @QueryParam('name') name: string,
+  @QueryParam('email') email: string
+) {
+  return `
+    <html>
       <body>
-        <h1>Welcome ${data.name}</h1>
-        <h2>Username: ${data.username}</h2>
-        <h2>Email: ${data.email}</h2>
-        <form action="/api/repos-to-badge" method="post">
-          <input type="hidden" name="provider" value="${provider}">
-          <input type="hidden" name="userId" value="${data.userId}">
-          <h2>Select Repositories:</h2>
-          ${data.repos
-            .map(
-              (repo) => `
-              <div>
-                <input type="checkbox" name="repos[]" value="${repo.id}">
-                <label for="${repo.id}">${repo.fullName}</label>
-              </div>
-            `
-            )
-            .join('')}
-          <br>
-          <input type="submit" value="Submit">
-        </form>
+        <h1>Badge Scan Successful!</h1>
+        <p>User: ${name} (${email})</p>
+        <p>Provider: ${provider}</p>
+        <p>User ID: ${userId}</p>
       </body>
     </html>
-    `;
-  }
+  `;
+}
 }
