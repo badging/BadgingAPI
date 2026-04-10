@@ -160,7 +160,7 @@ SMEE_WEBHOOK_URL=${values.smee_webhook_url}
 `;
 
   fs.writeFileSync(envPath, envFile);
-  console.info('\n✅ Configuration file (.env) created successfully at project root.');
+  console.info('\n Configuration file (.env) created successfully at project root.');
 }
 
 configure().catch((error) => {
