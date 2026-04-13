@@ -45,7 +45,13 @@ interface ConfigValues {
   encrypt_key: string;
 
   // Smee (development)
-  smee_webhook_url: string;
+  smee_client_url: string;
+  webhook_path: string;
+
+  // Repository for event badging
+  repository_name: string;
+  repository_owner: string;            
+  
 }
 
 async function configure(): Promise<void> {
@@ -107,10 +113,18 @@ async function configure(): Promise<void> {
     }),
 
     // Smee (development)
-    smee_webhook_url: await input({
+    smee_client_url: await input({
       message: 'Smee.io webhook URL (for development):',
       default: '',
     }),
+
+    webhook_path: await input({message: 'webhook path:'}),
+
+  
+
+    // Repository for event badging
+    repository_name: await input({ message: 'Repository name for event badging:' }),
+    repository_owner: await input({ message: 'Repository owner for event badging:' }),
   };
 
   const envFile = `# Server Configuration
@@ -156,7 +170,12 @@ NODEMAILER_ADDRESS=${values.nodemailer_address}
 ENCRYPT_KEY=${values.encrypt_key}
 
 # Smee (development webhook forwarding)
-SMEE_WEBHOOK_URL=${values.smee_webhook_url}
+SMEE_CLIENT_URL=${values.smee_client_url}
+WEBHOOK_PATH=${values.webhook_path}
+
+# Repository for event badging
+REPOSITORY_NAME=${values.repository_name}
+REPOSITORY_OWNER=${values.repository_owner}
 `;
 
   fs.writeFileSync(envPath, envFile);

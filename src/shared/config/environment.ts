@@ -35,6 +35,8 @@ export interface IEnvironmentConfig {
 
   //repository for event badging
   REPOSITORY_NAME: string;
+  REPOSITORY_OWNER: string;
+  
 
   // Email
   EMAIL_HOST: string;

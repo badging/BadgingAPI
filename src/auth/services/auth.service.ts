@@ -7,6 +7,7 @@ import {
   GitLabApiService,
   UserRepository,
   CryptoService,
+  getEnvVar
 } from '../../shared';
 import { Provider, IAuthCallbackResult, IOperationResult } from '../../shared/types';
 
@@ -123,8 +124,8 @@ export class AuthService {
 
       const result = await this.githubApiService.createIssue(
         octokit,
-        'adeyinkaoresanya',
-        'sandbox-event-dei',
+        getEnvVar('REPOSITORY_OWNER'),
+        getEnvVar('REPOSITORY_NAME'),
         parsedFormData.title,
         markdown
       );
