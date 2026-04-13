@@ -130,8 +130,9 @@ describe('EventBadgingController Integration', () => {
       action: 'closed',
       issue: { 
         title: '[Virtual Event] Test', 
+         html_url: 'https://github.com/5',
+        assignees: [{ login: 'reviewer1', html_url: 'https://github.com/reviewer1' }, { login: 'reviewer2', html_url: 'https://github.com/reviewer2' }],
         body: '- Link to the Event Website: https://virtual.com\n- Provide verification that you are an event organizer: ',
-        assignees: [] 
       },
       installation: { id: 1 },
       repository: { name: 'b', owner: { login: 'o' } }
