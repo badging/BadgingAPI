@@ -62,15 +62,18 @@ authGitHub(@Res() res: Response): void {
 }
 
   @Get('/auth/gitlab')
-  @Redirect(':url')
-  authGitLab() {
+ // @Redirect(':url')
+  authGitLab(@Res() res: Response): void {
     const result = this.authService.getLoginUrl('gitlab');
 
     if (result.errors.length || !result.data) {
+      console.error('GitLab auth error:', result.errors);
       throw new InternalServerError(result.errors.join(', '));
     }
+    res.redirect(result.data);
+    return;
 
-    return { url: result.data };
+    // return { url: result.data };
   }
 
   /**
@@ -142,17 +145,22 @@ authGitHub(@Res() res: Response): void {
   }
 
   @Get('/callback/gitlab')
-  async callbackGitLabGet(@QueryParam('code') code: string) {
-    return this.handleGitLabCallback(code);
+  async callbackGitLabGet(
+    @QueryParam('code') code: string,
+    @Res() response: Response
+  ): Promise<void> {
+    await this.handleGitLabCallback(code, response);
+    return;
   }
 
   @Post('/callback/gitlab')
   async callbackGitLabPost(
     @Body() body: { code?: string },
-    @QueryParam('code') queryCode: string
-  ) {
+    @QueryParam('code') queryCode: string,
+    @Res() response: Response
+  ): Promise<void> {
     const code = body.code || queryCode;
-    return this.handleGitLabCallback(code);
+    return this.handleGitLabCallback(code, response);
   }
 
   /**
@@ -187,20 +195,25 @@ authGitHub(@Res() res: Response): void {
     return;
   }
 
-  private async handleGitLabCallback(code: string) {
-    if (!code) throw new BadRequestError('Code is required');
+  private async handleGitLabCallback(code: string, res: Response): Promise<void> {
+    if (!code) {
+      res.status(400).json({ error: 'Code is required' });
+      return;
+    }
 
     const result = await this.authService.handleGitLabCallback(code);
 
     if (result.errors.length || !result.data) {
+        console.error('GitLab auth error:', result.errors);
       throw new InternalServerError(result.errors.join(', '));
     }
 
     if (isProduction()) {
-      return result.data;
+      res.status(200).json(result.data);
+      return;
     }
 
-    return this.renderDevRepoForm(result.data, 'gitlab');
+     res.status(200).send(this.renderDevRepoForm(result.data, 'gitlab'));
   }
 
   /**
