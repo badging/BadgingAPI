@@ -211,36 +211,71 @@ export class EventBadgingService {
       const eventName = payload.issue.title.replace(/\[(.*?)\] /gi, '');
 
       // Extract event URL from body
-      let eventUrl = '';
-     if (payload.issue.title.includes('[Virtual Event]')) {
-  const startMarker = '- Link to the Event Website: ';
-  const endMarker = '- Provide verification that you are an event organizer: ';
-  const startIdx = payload.issue.body.indexOf(startMarker);
-  const endIdx = payload.issue.body.indexOf(endMarker);
+//       let eventUrl = '';
+//      if (payload.issue.title.includes('[Virtual Event]')) {
+//   const startMarker = '- Link to the Event Website: ';
+//   const endMarker = '- Provide verification that you are an event organizer: ';
+//   const startIdx = payload.issue.body.indexOf(startMarker);
+//   const endIdx = payload.issue.body.indexOf(endMarker);
 
-  if (startIdx !== -1 && endIdx !== -1) {
-    // slice after startMarker, up to endIdx
-    eventUrl = payload.issue.body.slice(
-      startIdx + startMarker.length, 
-      endIdx
-    ).trim();
-  }
+//   if (startIdx !== -1 && endIdx !== -1) {
+//     // slice after startMarker, up to endIdx
+//     eventUrl = payload.issue.body.slice(
+//       startIdx + startMarker.length, 
+//       endIdx
+//     ).trim();
+//   }
 
-      } else if (payload.issue.title.includes('[In-Person Event]')) {
-  const startMarker = '- Link to the Event Website: ';
-  const endMarker = '- Are you an organizer ';
-  const startIdx = payload.issue.body.indexOf(startMarker);
-  const endIdx = payload.issue.body.indexOf(endMarker);
+//       } else if (payload.issue.title.includes('[In-Person Event]')) {
+//   const startMarker = '- Link to the Event Website: ';
+//   const endMarker = '- Are you an organizer ';
+//   const startIdx = payload.issue.body.indexOf(startMarker);
+//   const endIdx = payload.issue.body.indexOf(endMarker);
 
-  if (startIdx !== -1 && endIdx !== -1) {
-    // Slice after startMarker up to endIdx
-    eventUrl = payload.issue.body.slice(
-      startIdx + startMarker.length,
-      endIdx
-    ).trim();
-  }
-}
+//   if (startIdx !== -1 && endIdx !== -1) {
+//     // Slice after startMarker up to endIdx
+//     eventUrl = payload.issue.body.slice(
+//       startIdx + startMarker.length,
+//       endIdx
+//     ).trim();
+//   }
+// }
+
+// let eventUrl = '';
+//       if (payload.issue.title.includes('[Virtual Event]')) {
+//         const startMarker = '- Link to the Event Website: ';
+//         const endMarker = '- Provide verification that you are an event organizer: ';
+//         const startIdx = payload.issue.body.indexOf(startMarker);
+//         const endIdx = payload.issue.body.indexOf(endMarker);
+//         if (startIdx !== -1 && endIdx !== -1) {
+//           eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
+          
+//         }
+//       } else if (payload.issue.title.includes('[In-Person Event]')) {
+//         const startMarker = '- Link to the Event Website: ';
+//         const endMarker = '- Are you an organizer ';
+//         const startIdx = payload.issue.body.indexOf(startMarker);
+//         const endIdx = payload.issue.body.indexOf(endMarker);
+//         if (startIdx !== -1 && endIdx !== -1) {
+//           eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
+//         }
+//       }
       
+
+
+
+let eventUrl = '';
+
+const body = payload.issue.body || '';
+const match = body.match(
+     /Link to the Event Website:\s*(.+)$/mi
+  );
+  console.info(`Regex match result: ${match}`);
+
+  if (match) {
+    eventUrl = match[1];
+  }
+
 
       // Create badge object
       const badge: IEventBadge = {
@@ -270,6 +305,7 @@ export class EventBadgingService {
       });
 
       console.info('Event saved to database');
+      console.info(`Event URL: ${eventUrl}`);
     } catch (error) {
       console.error('Error saving event:', error);
     }
