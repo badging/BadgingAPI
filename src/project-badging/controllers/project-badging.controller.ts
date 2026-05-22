@@ -1,15 +1,31 @@
-import { JsonController, Get, Post, Body, Res } from 'routing-controllers';
+import {
+  JsonController,
+  Get,
+  Post,
+  Body,
+  Res,
+  QueryParam,
+  ContentType,
+} from 'routing-controllers';
 import { Service } from 'typedi';
 import { Response } from 'express';
+
 import { ProjectBadgingService } from '../services/project-badging.service';
 import { UserRepository } from '../../shared';
 import { Provider } from '../../shared/types';
+
+import { AppError } from '../../shared/errors'; 
+import { logger } from '../../shared/logger'; 
+
 
 interface RepoToBadgeRequest {
   userId: number;
   provider: Provider;
   repos: Array<{ id: number; fullName?: string }>;
 }
+
+
+
 
 @JsonController('/api')
 @Service()
@@ -19,25 +35,17 @@ export class ProjectBadgingController {
     private userRepository: UserRepository
   ) {}
 
-  /**
-   * GET /api/badgedRepos
-   * Get all badged repositories
-   */
   @Get('/badgedRepos')
   async getBadgedRepos(@Res() response: Response): Promise<Response> {
-    try {
-      const repos = await this.projectBadgingService.getBadgedRepos();
-      return response.json(repos);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return response.status(500).json({ message: 'Error retrieving repos', error: errorMessage });
-    }
+    const repos = await this.projectBadgingService.getBadgedRepos();
+
+    logger.info('Fetched badged repos', {
+      count: repos.length,
+    });
+
+    return response.json(repos);
   }
 
-  /**
-   * POST /api/repos-to-badge
-   * Scan selected repositories and award badges
-   */
   @Post('/repos-to-badge')
   async reposToBadge(
     @Body() body: RepoToBadgeRequest,
@@ -45,54 +53,73 @@ export class ProjectBadgingController {
   ): Promise<Response> {
     const { userId, provider, repos: selectedRepos = [] } = body;
 
-    // Validate provider
+    // -------------------------
+    // VALIDATION (business errors)
+    // -------------------------
     if (!provider) {
-      return response.status(400).json({ error: 'provider missing' });
+      throw new AppError('Provider is required', 400);
     }
 
     if (provider !== 'github' && provider !== 'gitlab') {
-      return response.status(400).json({ error: `Unknown provider: ${provider as string}` });
+      throw new AppError('Invalid provider', 400);
     }
 
-    // Validate userId
     if (!userId) {
-      return response.status(400).json({ error: 'userId missing' });
+      throw new AppError('UserId is required', 400);
     }
 
-    // Find user
-    let user;
-    try {
-      user = await this.userRepository.findById(userId);
-      if (!user) {
-        return response.status(404).json({ error: 'User not found' });
-      }
-    } catch (error) {
-      return response.status(500).json({ error: 'Error fetching user data' });
+    if (!selectedRepos.length) {
+      throw new AppError('No repositories selected', 400);
     }
 
-    // Extract repository IDs
+    // -------------------------
+    // USER FETCH (NO try/catch)
+    // -------------------------
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // -------------------------
+    // BUSINESS LOGIC
+    // -------------------------
     const repositoryIds = selectedRepos.map((repo) => repo.id);
 
-    if (repositoryIds.length === 0) {
-      return response.status(400).json({ error: 'No repositories selected' });
-    }
+    logger.info('Starting repo badging process', {
+      userId,
+      provider,
+      repoCount: repositoryIds.length,
+    });
 
-    try {
-      // Scan repositories and award badges
-      const results = await this.projectBadgingService.scanRepositories(
-        user.id,
-        user.name,
-        user.email,
-        repositoryIds,
-        provider
-      );
+    const results = await this.projectBadgingService.scanRepositories(
+      user.id,
+      user.name,
+      user.email,
+      repositoryIds,
+      provider
+    );
 
-      return response.status(200).json({ results });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return response
-        .status(500)
-        .json({ error: 'Error processing repositories', details: errorMessage });
-    }
+    return response.status(200).json({ results });
+  }
+
+  @Get('/project-badging-successful')
+  @ContentType('text/html')
+  projectBadgingSuccessful(
+    @QueryParam('provider') provider: string,
+    @QueryParam('userId') userId: string,
+    @QueryParam('name') name: string,
+    @QueryParam('email') email: string
+  ) {
+    return `
+      <html>
+        <body>
+          <h1>Badge Scan Successful!</h1>
+          <p>User: ${name} (${email})</p>
+          <p>Provider: ${provider}</p>
+          <p>User ID: ${userId}</p>
+        </body>
+      </html>
+    `;
   }
 }
