@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { User } from '../models/user.model';
 import { IUserCreationAttributes } from '../../types';
+import { logger } from '../../logger' 
 
 @Service()
 export class UserRepository {
@@ -53,7 +54,7 @@ export class UserRepository {
   ): Promise<User | null> {
     // Validate that exactly one of githubId or gitlabId is provided
     if ((githubId && gitlabId) || (!githubId && !gitlabId)) {
-      console.error('Error creating user: provide either githubId or gitlabId');
+      logger.error('Error creating user: provide either githubId or gitlabId');
       return null;
     }
 
@@ -76,7 +77,7 @@ export class UserRepository {
           githubId,
           gitlabId,
         });
-        console.log(`New user created: ${user.login}`);
+        logger.info(`New user created: ${user.login}`);
         return user;
       }
 
@@ -95,15 +96,15 @@ export class UserRepository {
 
       if (Object.keys(updates).length > 0) {
         await this.update(user, updates);
-        console.log(`User ${user.login} updated: ${Object.keys(updates).join(', ')}`);
+        logger.info(`User ${user.login} updated: ${Object.keys(updates).join(', ')}`);
       } else {
-        console.log('User already exists');
+        logger.info('User already exists');
       }
 
       return user;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`Error saving user: ${errorMessage}`);
+      logger.error(`Error saving user: ${errorMessage}`);
       return null;
     }
   }

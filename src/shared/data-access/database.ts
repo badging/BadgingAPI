@@ -4,6 +4,7 @@ import { getEnvVar, isDevelopment } from '../config/environment';
 import { User } from './models/user.model';
 import { Repo } from './models/repo.model';
 import { Event } from './models/event.model';
+import { logger } from '../logger';
 
 @Service()
 export class Database {
@@ -18,27 +19,28 @@ export class Database {
       dialect: getEnvVar('DB_DIALECT') as 'mysql' | 'postgres' | 'sqlite' | 'mariadb',
       port: parseInt(getEnvVar('DB_PORT', '3306'), 10),
       models: [User, Repo, Event],
-      logging: isDevelopment() ? console.log : false,
+      logging: isDevelopment()
+        ? (msg) => logger.debug('SQL Query', { query: msg })
+        : false,
     });
   }
 
   async connect(): Promise<void> {
     try {
       await this.sequelize.authenticate();
-      console.log('Database connection established successfully.');
+      logger.info('Database connection established successfully.');
 
       // In development, force sync to recreate tables
       // In production, just sync without dropping
       if (isDevelopment()) {
         await this.sequelize.sync({ force: true });
-        console.log('Database synchronized (force mode).');
+        logger.warn('Database synchronized (force mode) for dev only.');
       } else {
         await this.sequelize.sync();
-        console.log('Database synchronized.');
+        logger.info('Database synchronized.');
       }
-    } catch (error) {
-      console.error('Unable to connect to the database:', error);
-      throw error;
+    } catch (error: unknown) {
+        throw error;
     }
   }
 

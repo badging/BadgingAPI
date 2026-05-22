@@ -8,3 +8,11 @@ export async function initializeDatabase(): Promise<void> {
   await database.connect();
   logger.info('Database connected');
 }
+
+
+export async function disconnectDatabase(): Promise<void> {
+  logger.info('Disconnecting from database...');
+  const database = Container.get(Database);
+  await database.disconnect();
+  logger.info('Database disconnected');
+}

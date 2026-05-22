@@ -1,6 +1,7 @@
 import { input, password } from '@inquirer/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../shared/logger';
 
 interface ConfigValues {
   // Database configuration
@@ -58,11 +59,11 @@ async function configure(): Promise<void> {
   const envPath = path.resolve(__dirname, '../../.env');
 
   if (fs.existsSync(envPath)) {
-    console.info('.env file already exists. Delete it first if you want to reconfigure.');
+    logger.info('.env file already exists. Delete it first if you want to reconfigure.');
     return;
   }
 
-  console.info('Please input the fields below to configure your project locally\n');
+  logger.info('Please input the fields below to configure your project locally\n');
 
   const values: ConfigValues = {
     // Database configuration
@@ -179,10 +180,10 @@ REPOSITORY_OWNER=${values.repository_owner}
 `;
 
   fs.writeFileSync(envPath, envFile);
-  console.info('\n Configuration file (.env) created successfully at project root.');
+  logger.info('\n Configuration file (.env) created successfully at project root.');
 }
 
 configure().catch((error) => {
-  console.error('Configuration failed:', error);
+  logger.error('Configuration failed:', error);
   process.exit(1);
 });

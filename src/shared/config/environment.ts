@@ -27,6 +27,8 @@ export interface IEnvironmentConfig {
   GITHUB_APP_CLIENT_ID: string;
   GITHUB_APP_CLIENT_SECRET: string;
   GITHUB_APP_WEBHOOK_SECRET: string;
+  GITHUB_APP_INSTALLATION_ID: string;
+  GITHUB_APP_INSTALLATION_TOKEN: string;
 
   // GitLab OAuth
   GITLAB_APP_CLIENT_ID: string;
