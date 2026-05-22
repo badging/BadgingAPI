@@ -4,334 +4,198 @@ import {
   Post,
   QueryParam,
   Body,
-  Redirect,
-  BadRequestError,
-  InternalServerError,
-  ContentType,
   Res,
 } from 'routing-controllers';
 import { Response } from 'express';
 import { Service } from 'typedi';
+
 import { AuthService } from '../services/auth.service';
+
 import { Provider } from '../../shared/types';
+
 import { isProduction } from '../../shared/config/environment';
+import { renderDevRepoForm } from '../../dev/render-dev-form';
+import { AppError } from '../../shared/errors';
 
 @JsonController('/api')
 @Service()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  /**
-   * LOGIN ENTRY
-   */
+  // -------------------------
+  // LOGIN ENTRY
+  // -------------------------
+
   @Get('/login')
-  @Redirect(':url')
-  login(@QueryParam('provider') provider: Provider) {
-    if (!provider) throw new BadRequestError('Provider is required');
-
-    const result = this.authService.getLoginUrl(provider);
-
-    if (result.errors.length || !result.data) {
-      throw new InternalServerError(result.errors.join(', '));
+  // @Redirect(':url')
+  login(@QueryParam('provider') provider: Provider, @Res() res: Response) {
+    if (!provider) {
+      throw new AppError('Provider is required', 400);
     }
 
-    return { url: result.data };
+    const { data } = this.authService.getLoginUrl(provider);
+
+    if (!data) {
+      throw new AppError('Failed to generate login URL', 500);
+    }
+
+    //return { url: data };
+    res.redirect(data);
+    return;
   }
 
-  /**
-   * PROVIDER LOGIN
-   */
+  // -------------------------
+  // PROVIDER LOGIN
+  // -------------------------
 
+  @Get('/auth/github')
+  authGitHub(@Res() res: Response) {
+    const { data } = this.authService.getLoginUrl('github');
 
-@Get('/auth/github')
-// @Redirect('')
-authGitHub(@Res() res: Response): void {
-  const result = this.authService.getLoginUrl('github');
+    if (!data) {
+      throw new AppError('GitHub auth URL generation failed', 500);
+    }
 
-  if (result.errors.length || !result.data) {
-    throw new InternalServerError(result.errors.join(', '));
+    return res.redirect(data);
   }
-  res.redirect(result.data);
-  return;
-
-  // return {
-  //   url: result.data,
-  //   statusCode: 302
-  // };
-
-}
 
   @Get('/auth/gitlab')
- // @Redirect(':url')
-  authGitLab(@Res() res: Response): void {
-    const result = this.authService.getLoginUrl('gitlab');
+  authGitLab(@Res() res: Response) {
+    const { data } = this.authService.getLoginUrl('gitlab');
 
-    if (result.errors.length || !result.data) {
-      console.error('GitLab auth error:', result.errors);
-      throw new InternalServerError(result.errors.join(', '));
+    if (!data) {
+      throw new AppError('GitLab auth URL generation failed', 500);
     }
-    res.redirect(result.data);
-    return;
 
-    // return { url: result.data };
+    res.redirect(data);
+    return;
   }
 
-  /**
-   * EVENT BADGING AUTH
-   */
+  // -------------------------
+  // EVENT BADGING AUTH
+  // -------------------------
 
   @Post('/auth/github')
   authGitHubEventBadging(
     @Body() body: { type?: string; title?: string; body?: string }
   ) {
-    if (body.type === 'event-badging') {
-      if (!body.title || !body.body) {
-        throw new BadRequestError('Title and body are required');
+    if (body.type !== 'event-badging') {
+      const { data } = this.authService.getLoginUrl('github');
+
+      if (!data) {
+        throw new AppError('GitHub auth generation failed', 500);
       }
 
-      const result = this.authService.getEventBadgingAuthUrl(
-        body.title,
-        body.body
-      );
-
-      if (result.errors.length || !result.data) {
-        throw new InternalServerError(result.errors.join(', '));
-      }
-
-      return { authorizationLink: result.data };
+      return { redirectUrl: data };
     }
 
-    const result = this.authService.getLoginUrl('github');
-
-    if (result.errors.length || !result.data) {
-      throw new InternalServerError(result.errors.join(', '));
+    if (!body.title || !body.body) {
+      throw new AppError('Title and body are required', 400);
     }
 
-    return { redirectUrl: result.data };
+    const { data } = this.authService.getEventBadgingAuthUrl(
+      body.title,
+      body.body
+    );
+
+    if (!data) {
+      throw new AppError('Failed to generate event badging auth URL', 500);
+    }
+
+    return { authorizationLink: data };
   }
 
-  /**
-   * CALLBACKS
-   */
+  // -------------------------
+  // CALLBACKS
+  // -------------------------
 
- /**
-   * GET /api/callback/github
-   * Ensure we pass @Res() and return Promise<void>
-   */
   @Get('/callback/github')
   async callbackGitHubGet(
     @QueryParam('code') code: string,
     @QueryParam('state') state: string,
-    @Res() response: Response // Inject the response object
-  ): Promise<void> {
-    await this.handleGitHubCallback(code, state, response);
-    return; // Explicitly return nothing so the framework stops here
+    @Res() res: Response
+  ) {
+    return this.handleGitHubCallback(code, state, res);
   }
 
-  /**
-   * POST /api/callback/github
-   * Consistency is key: use the same Res pattern
-   */
   @Post('/callback/github')
   async callbackGitHubPost(
     @Body() body: { code?: string },
     @QueryParam('code') queryCode: string,
     @QueryParam('state') state: string,
-    @Res() response: Response
-  ): Promise<void> {
-    const code = body.code || queryCode;
-    await this.handleGitHubCallback(code, state, response);
-    return;
+    @Res() res: Response
+  ) {
+    const code = body?.code || queryCode;
+    return this.handleGitHubCallback(code, state, res);
   }
 
   @Get('/callback/gitlab')
   async callbackGitLabGet(
     @QueryParam('code') code: string,
-    @Res() response: Response
-  ): Promise<void> {
-    await this.handleGitLabCallback(code, response);
-    return;
+    @Res() res: Response
+  ) {
+    return this.handleGitLabCallback(code, res);
   }
 
   @Post('/callback/gitlab')
   async callbackGitLabPost(
     @Body() body: { code?: string },
     @QueryParam('code') queryCode: string,
-    @Res() response: Response
-  ): Promise<void> {
-    const code = body.code || queryCode;
-    return this.handleGitLabCallback(code, response);
+    @Res() res: Response
+  ) {
+    const code = body?.code || queryCode;
+    return this.handleGitLabCallback(code, res);
   }
 
-  /**
-   * HANDLERS
-   */
+  // -------------------------
+  // HANDLERS
+  // -------------------------
 
-  private async handleGitHubCallback(code: string, state: string | undefined, res: Response): Promise<void> {
+  private async handleGitHubCallback(
+    code: string,
+    state: string | undefined,
+    res: Response
+  ) {
     if (!code) {
-    res.status(400).json({ error: 'Code is required' });
-    return; // STOP HERE
-  }
-    
+      throw new AppError('Code is required', 400);
+    }
+
     const result = await this.authService.handleGitHubCallback(code, state);
-    
-    if (result.errors.length > 0 || !result.data) {
-      res.status(500).json({ error: result.errors.join(', ') });
-      return;
+
+    if (!result.data) {
+      throw new AppError('GitHub callback failed', 500);
     }
 
     if ('issueUrl' in result.data) {
-      res.redirect(result.data.issueUrl);
-      return; // Stop execution here
+      return res.redirect(result.data.issueUrl);
     }
 
-    // For JSON or HTML, send it and return void
     if (isProduction()) {
-      res.status(200).json(result.data);
-      return;
+      return res.status(200).json(result.data);
     }
 
-    res.status(200).send(this.renderDevRepoForm(result.data, 'github'));
-    return;
+    return res
+      .status(200)
+      .send(renderDevRepoForm(result.data, 'github'));
   }
 
-  private async handleGitLabCallback(code: string, res: Response): Promise<void> {
+  private async handleGitLabCallback(code: string, res: Response) {
     if (!code) {
-      res.status(400).json({ error: 'Code is required' });
-      return;
+      throw new AppError('Code is required', 400);
     }
 
     const result = await this.authService.handleGitLabCallback(code);
 
-    if (result.errors.length || !result.data) {
-        console.error('GitLab auth error:', result.errors);
-      throw new InternalServerError(result.errors.join(', '));
+    if (!result.data) {
+      throw new AppError('GitLab callback failed', 500);
     }
 
     if (isProduction()) {
-      res.status(200).json(result.data);
-      return;
+      return res.status(200).json(result.data);
     }
 
-     res.status(200).send(this.renderDevRepoForm(result.data, 'gitlab'));
+    return res
+      .status(200)
+      .send(renderDevRepoForm(result.data, 'gitlab'));
   }
-
-  /**
-   * DEV HTML RENDERER
-   */
-
-@ContentType('text/html')
-private renderDevRepoForm(
-  data: {
-    userId: number;
-    name: string;
-    username: string;
-    email: string;
-    repos: Array<{ id: number; fullName: string }>;
-  },
-  provider: string
-): string {
-  return `
-<html>
-<head>
-  <title>Select Repositories</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1, h2, h3 { margin: 5px 0; }
-    .repo { margin: 5px 0; }
-    button { margin-top: 10px; padding: 8px 12px; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <h1>Welcome ${data.name}</h1>
-  <h3>Username: ${data.username}</h3>
-  <h3>Email: ${data.email}</h3>
-
-  <form id="reposForm">
-    <input type="hidden" name="provider" value="${provider}">
-    <input type="hidden" name="userId" value="${data.userId}">
-
-    <h2>Select Repositories:</h2>
-    ${data.repos
-      .map(
-        (repo) => `
-      <div class="repo">
-        <input type="checkbox" name="repos[]" value="${repo.id}" id="repo-${repo.id}">
-        <label for="repo-${repo.id}">${repo.fullName}</label>
-      </div>
-    `
-      )
-      .join('')}
-
-    <button type="submit">Scan Projects</button>
-  </form>
-
-  <script>
-    const form = document.getElementById('reposForm');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(form);
-      const payload = {
-        provider: formData.get('provider'),
-        userId: Number(formData.get('userId')),
-        repos: formData.getAll('repos[]').map(id => ({ id: Number(id) }))
-      };
-
-      try {
-        const res = await fetch('/api/repos-to-badge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          alert('Error: ' + text);
-          return;
-        }
-
-        const json = await res.json();
-
-        // Redirect to success page with query parameters
-        const params = new URLSearchParams({
-          provider: payload.provider,
-          userId: payload.userId,
-          name: '${data.name}',
-          email: '${data.email}'
-        }).toString();
-
-        window.location.href = '/api/project-badging-successful?' + params;
-
-      } catch (err) {
-        alert('Network error: ' + err);
-      }
-    });
-  </script>
-</body>
-</html>
-  `;
-}
-
-
-@Get('/project-badging-successful')
-@ContentType('text/html')
-projectBadgingSuccessful(
-  @QueryParam('provider') provider: string,
-  @QueryParam('userId') userId: string,
-  @QueryParam('name') name: string,
-  @QueryParam('email') email: string
-) {
-  return `
-    <html>
-      <body>
-        <h1>Badge Scan Successful!</h1>
-        <p>User: ${name} (${email})</p>
-        <p>Provider: ${provider}</p>
-        <p>User ID: ${userId}</p>
-      </body>
-    </html>
-  `;
-}
 }
