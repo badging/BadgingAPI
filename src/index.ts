@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { createApp } from './app';
-import { initializeDatabase } from './shared/data-access/database.bootstrap';
+import { initializeDatabase, disconnectDatabase } from './shared/data-access/database.bootstrap';
 import { startSmee } from './dev/smee';
 import { getEnvVar, isDevelopment } from './shared/config/environment';
 import {logger} from './shared/logger';
@@ -23,17 +23,22 @@ async function bootstrap(): Promise<void> {
   const server = app.listen(PORT, () => {
     logger.info('Server started at', { url: APP_URL });
   });
-
+  
   const shutdown = () => {
     stopSmee();
-    server.close(() => process.exit(0));
+    server.close(async () => {
+      
+      await disconnectDatabase();
+      process.exit(0);
+      
+    });
   };
 
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 }
 
-bootstrap().catch((err) => {
-  logger.error('Fatal startup error', { err });
+bootstrap().catch((error) => {
+  logger.error('Fatal startup error', error);
   process.exit(1);
 });
