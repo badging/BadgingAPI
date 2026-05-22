@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getEnvVar } from '../config/environment';
 import { IEmailOptions } from '../types';
+import { logger } from '../logger';
 
 @Service()
 export class MailerService {
@@ -22,7 +23,7 @@ export class MailerService {
     const emailPassword = getEnvVar('EMAIL_PASSWORD', false);
 
     if (!emailHost || !emailAddress || !emailPassword) {
-      console.warn('Email service is not configured - emails will not be sent');
+      logger.warn('Email service is not configured - emails will not be sent');
       return;
     }
 
@@ -40,7 +41,7 @@ export class MailerService {
    */
   async sendSuccessEmail(options: IEmailOptions): Promise<boolean> {
     if (!this.transporter) {
-      console.error('Email service is not configured');
+      logger.error('Email service is not configured');
       return false;
     }
 
@@ -62,10 +63,10 @@ export class MailerService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.response);
+      logger.info('Email sent:', { response: info.response });
       return true;
     } catch (error) {
-      console.error('Error sending success email:', error);
+      logger.error('Error sending success email:', { error });
       return false;
     }
   }
@@ -75,7 +76,7 @@ export class MailerService {
    */
   async sendFailureEmail(options: IEmailOptions): Promise<boolean> {
     if (!this.transporter) {
-      console.error('Email service is not configured');
+      logger.error('Email service is not configured');
       return false;
     }
 
@@ -96,10 +97,10 @@ export class MailerService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.response);
+      logger.info('Email sent:', { response: info.response });
       return true;
     } catch (error) {
-      console.error('Error sending failure email:', error);
+      logger.error('Error sending failure email:', { error });
       return false;
     }
   }

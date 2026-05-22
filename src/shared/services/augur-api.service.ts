@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import axios from 'axios';
 import { getEnvVar } from '../config/environment';
+import { logger } from '../logger';
 
 @Service()
 export class AugurApiService {
@@ -14,12 +15,12 @@ export class AugurApiService {
     const clientSecret = getEnvVar('AUGUR_APP_CLIENT_SECRET', false);
 
     if (!clientSecret) {
-      console.error('AUGUR_APP_CLIENT_SECRET not provided');
+      logger.error('AUGUR_APP_CLIENT_SECRET not provided');
       return null;
     }
 
     if (!apiKey) {
-      console.error('AUGUR_API_KEY not provided');
+      logger.error('AUGUR_API_KEY not provided');
       return null;
     }
 
@@ -37,7 +38,7 @@ export class AugurApiService {
       return response.data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error calling Augur API:', errorMessage);
+      logger.error('Error calling Augur API:', { error: errorMessage });
       return null;
     }
   }

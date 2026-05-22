@@ -7,6 +7,7 @@ import {
   IRepositoryDetails,
   IFileContent,
 } from '../../types';
+import { logger } from '../../logger';
 
 @Service()
 export class GitHubApiService {
@@ -23,7 +24,7 @@ export class GitHubApiService {
       return {
         data: {
           login,
-          name: name || login, // Fallback to login if name is null
+          name: name || login,
           email: email || '',
           id,
         },
@@ -31,6 +32,9 @@ export class GitHubApiService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      logger.error('Failed to fetch GitHub user info', { error: errorMessage });
+
       return {
         data: null,
         errors: [errorMessage],
@@ -73,6 +77,10 @@ export class GitHubApiService {
         errors: [],
       };
     } catch (error) {
+      logger.error('Failed to fetch GitHub repositories', {
+        error: error instanceof Error ? error.message : error,
+      });
+
       return {
         data: null,
         errors: ['GitHub API returning no repository(ies).'],
@@ -91,6 +99,7 @@ export class GitHubApiService {
       const response = await octokit.request('GET /repositories/{repositoryId}', {
         repositoryId,
       });
+
       const { id, html_url, full_name } = response.data as {
         id: number;
         html_url: string;
@@ -107,21 +116,17 @@ export class GitHubApiService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      logger.error('Failed to fetch repository info', {
+        repositoryId,
+        error: errorMessage,
+      });
+
       return {
         data: null,
         errors: [errorMessage],
       };
     }
-  }
-
-  /**
-   * Get repository info (unauthenticated - by ID)
-   */
-  async getRepositoryInfoPublic(
-    repositoryId: number
-  ): Promise<IOperationResult<IRepositoryDetails>> {
-    const octokit = new Octokit();
-    return this.getRepositoryInfo(octokit, repositoryId);
   }
 
   /**
@@ -141,7 +146,6 @@ export class GitHubApiService {
         path: filePath,
       });
 
-      // Type guard - ensure we got a file, not an array of files
       if (Array.isArray(data) || data.type !== 'file' || !('content' in data)) {
         return {
           data: null,
@@ -157,23 +161,17 @@ export class GitHubApiService {
         errors: [],
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to fetch file content from GitHub', {
+        repositoryFullName,
+        filePath,
+        error: error instanceof Error ? error.message : error,
+      });
+
       return {
         data: null,
-        errors: [errorMessage],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
-  }
-
-  /**
-   * Get file content (unauthenticated)
-   */
-  async getFileContentPublic(
-    repositoryFullName: string,
-    filePath: string
-  ): Promise<IOperationResult<IFileContent>> {
-    const octokit = new Octokit();
-    return this.getFileContentAndSHA(octokit, repositoryFullName, filePath);
   }
 
   /**
@@ -202,10 +200,16 @@ export class GitHubApiService {
         errors: [],
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to create GitHub issue', {
+        owner,
+        repo,
+        title,
+        error: error instanceof Error ? error.message : error,
+      });
+
       return {
         data: null,
-        errors: [errorMessage],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   }
@@ -233,10 +237,16 @@ export class GitHubApiService {
         errors: [],
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to create issue comment', {
+        owner,
+        repo,
+        issueNumber,
+        error: error instanceof Error ? error.message : error,
+      });
+
       return {
         data: null,
-        errors: [errorMessage],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   }
@@ -271,10 +281,16 @@ export class GitHubApiService {
         errors: [],
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Failed to list issue comments', {
+        owner,
+        repo,
+        issueNumber,
+        error: error instanceof Error ? error.message : error,
+      });
+
       return {
         data: null,
-        errors: [errorMessage],
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
       };
     }
   }
@@ -299,8 +315,15 @@ export class GitHubApiService {
 
       return { data: true, errors: [] };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return { data: null, errors: [errorMessage] };
+      logger.error('Failed to add labels', {
+        owner,
+        repo,
+        issueNumber,
+        labels,
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { data: null, errors: [error instanceof Error ? error.message : 'Unknown error'] };
     }
   }
 
@@ -324,8 +347,15 @@ export class GitHubApiService {
 
       return { data: true, errors: [] };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return { data: null, errors: [errorMessage] };
+      logger.error('Failed to remove label', {
+        owner,
+        repo,
+        issueNumber,
+        label,
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { data: null, errors: [error instanceof Error ? error.message : 'Unknown error'] };
     }
   }
 
@@ -348,8 +378,14 @@ export class GitHubApiService {
 
       return { data: true, errors: [] };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return { data: null, errors: [errorMessage] };
+      logger.error('Failed to close issue', {
+        owner,
+        repo,
+        issueNumber,
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { data: null, errors: [error instanceof Error ? error.message : 'Unknown error'] };
     }
   }
 
@@ -379,8 +415,14 @@ export class GitHubApiService {
       const content = Buffer.from(data.content, 'base64').toString();
       return { data: content, errors: [] };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      return { data: null, errors: [errorMessage] };
+      logger.error('Failed to fetch repo content', {
+        owner,
+        repo,
+        path,
+        error: error instanceof Error ? error.message : error,
+      });
+
+      return { data: null, errors: [error instanceof Error ? error.message : 'Unknown error'] };
     }
   }
 }

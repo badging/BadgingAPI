@@ -12,6 +12,7 @@ export class CryptoService {
 
   constructor() {
     const encryptionKey = getEnvVar('ENCRYPTION_SECRET_KEY', false);
+    
     this.secretKey = crypto
       .createHash('sha256')
       .update(String(encryptionKey))
