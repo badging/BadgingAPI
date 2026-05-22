@@ -4,20 +4,19 @@ import { Container } from 'typedi';
 import express, { Express } from 'express';
 import path from 'path';
 
-// Import controllers
 import { AuthController } from './auth/controllers';
 import { ProjectBadgingController } from './project-badging/controllers';
 import { EventBadgingController } from './event-badging/controllers';
 import { SystemController } from './shared/controllers';
 
-// Set container for routing-controllers
+import { requestLogger, globalErrorHandler} from './middleware'
+
 useContainer(Container);
 
-/**
- * Create and configure Express application
- */
+
+
 export function createApp(): Express {
-  // Create express server with routing-controllers
+
   const app: Express = createExpressServer({
     controllers: [AuthController, ProjectBadgingController, EventBadgingController, SystemController],
     cors: true,
@@ -25,8 +24,12 @@ export function createApp(): Express {
     routePrefix: '',
   }) as Express;
 
-  // Serve static files
-  app.use('/assets', express.static(path.join(__dirname, '../assets')));
+app.use(requestLogger);
+
+app.use('/assets', express.static(path.join(__dirname, '../assets')));
+
+
+  app.use(globalErrorHandler);
 
   return app;
 }
