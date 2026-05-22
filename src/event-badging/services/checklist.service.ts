@@ -1,6 +1,8 @@
 import { Service } from 'typedi';
 import { Octokit } from 'octokit';
 import { GitHubApiService } from '../../shared/providers/github/github-api.service';
+import { AppError } from '../../shared/errors';
+import { logger } from '../../shared/logger';
 
 type ChecklistType = 'virtual' | 'in-person';
 
@@ -15,9 +17,6 @@ interface ChecklistSection {
 export class ChecklistService {
   constructor(private githubApiService: GitHubApiService) {}
 
-  /**
-   * Determine checklist type from issue title
-   */
   getChecklistType(issueTitle: string): ChecklistType {
     if (issueTitle.substring(0, 15) === '[Virtual Event]') {
       return 'virtual';
@@ -25,16 +24,12 @@ export class ChecklistService {
     return 'in-person';
   }
 
-  /**
-   * Get checklist path based on type
-   */
   getChecklistPath(type: ChecklistType): string {
-    return type === 'virtual' ? '.github/checklist-virtual.md' : '.github/checklist.md';
+    return type === 'virtual'
+      ? '.github/checklist-virtual.md'
+      : '.github/checklist.md';
   }
 
-  /**
-   * Generate reviewer checklist by combining issue content with checklist template
-   */
   async generateReviewerChecklist(
     octokit: Octokit,
     owner: string,
@@ -44,32 +39,26 @@ export class ChecklistService {
   ): Promise<string> {
     const checklistPath = this.getChecklistPath(checklistType);
 
-    // Fetch checklist template
-    const { data: checklistContent, errors } = await this.githubApiService.getRepoContent(
-      octokit as unknown as import('@octokit/rest').Octokit,
-      owner,
-      repo,
-      checklistPath
-    );
+    const { data: checklistContent, errors } =
+      await this.githubApiService.getRepoContent(
+        octokit as unknown as import('@octokit/rest').Octokit,
+        owner,
+        repo,
+        checklistPath
+      );
 
     if (errors.length > 0 || !checklistContent) {
-      throw new Error(`Failed to fetch checklist: ${errors.join(', ')}`);
+      logger.error('Failed to fetch checklist', { errors });
+      throw new AppError('Failed to fetch checklist template', 500);
     }
 
-    // Remove existing checks from issue body
     const cleanedBody = issueBody.replace(/- \[x\]|- \[ \]/g, '');
 
-    // Combine issue content with checklist based on type
-    if (checklistType === 'virtual') {
-      return this.combineVirtualChecklist(cleanedBody, checklistContent);
-    }
-
-    return this.combineInPersonChecklist(cleanedBody, checklistContent);
+    return checklistType === 'virtual'
+      ? this.combineVirtualChecklist(cleanedBody, checklistContent)
+      : this.combineInPersonChecklist(cleanedBody, checklistContent);
   }
 
-  /**
-   * Combine virtual event checklist
-   */
   private combineVirtualChecklist(issueBody: string, checklist: string): string {
     const sections: ChecklistSection[] = [
       {
@@ -106,7 +95,6 @@ export class ChecklistService {
 
     let combined = '';
 
-    // Add initial content
     combined +=
       issueBody.slice(0, issueBody.indexOf('## Event Demographics')) +
       '\n' +
@@ -116,7 +104,6 @@ export class ChecklistService {
       ) +
       '\n\n';
 
-    // Add sections
     for (const section of sections) {
       combined +=
         issueBody.slice(
@@ -131,7 +118,6 @@ export class ChecklistService {
         '\n\n';
     }
 
-    // Add final section
     combined +=
       issueBody.slice(issueBody.indexOf('## Event Accessibility')) +
       '\n' +
@@ -141,9 +127,6 @@ export class ChecklistService {
     return combined;
   }
 
-  /**
-   * Combine in-person event checklist
-   */
   private combineInPersonChecklist(issueBody: string, checklist: string): string {
     const sections: ChecklistSection[] = [
       {
@@ -192,7 +175,6 @@ export class ChecklistService {
 
     let combined = '';
 
-    // Add initial content
     combined +=
       issueBody.slice(0, issueBody.indexOf('## Event Demographics')) +
       '\n' +
@@ -202,7 +184,6 @@ export class ChecklistService {
       ) +
       '\n\n';
 
-    // Add sections
     for (const section of sections) {
       combined +=
         issueBody.slice(
@@ -217,7 +198,6 @@ export class ChecklistService {
         '\n\n';
     }
 
-    // Add final section
     combined +=
       issueBody.slice(issueBody.indexOf('## Public Health and Safety')) +
       '\n' +
@@ -227,45 +207,40 @@ export class ChecklistService {
     return combined;
   }
 
-  /**
-   * Get reviewer welcome message
-   */
   async getReviewerWelcome(octokit: Octokit, owner: string, repo: string): Promise<string> {
-    const { data: content, errors } = await this.githubApiService.getRepoContent(
-      octokit as unknown as import('@octokit/rest').Octokit,
-      owner,
-      repo,
-      '.github/reviewer-welcome.md'
-    );
+    const { data: content, errors } =
+      await this.githubApiService.getRepoContent(
+        octokit as unknown as import('@octokit/rest').Octokit,
+        owner,
+        repo,
+        '.github/reviewer-welcome.md'
+      );
 
     if (errors.length > 0 || !content) {
-      throw new Error(`Failed to fetch reviewer welcome: ${errors.join(', ')}`);
+      logger.error('Failed to fetch reviewer welcome', { errors });
+      throw new AppError('Failed to fetch reviewer welcome message', 500);
     }
 
     return content;
   }
 
-  /**
-   * Get applicant welcome message
-   */
   async getApplicantWelcome(octokit: Octokit, owner: string, repo: string): Promise<string> {
-    const { data: content, errors } = await this.githubApiService.getRepoContent(
-      octokit as unknown as import('@octokit/rest').Octokit,
-      owner,
-      repo,
-      '.github/applicant-welcome.md'
-    );
+    const { data: content, errors } =
+      await this.githubApiService.getRepoContent(
+        octokit as unknown as import('@octokit/rest').Octokit,
+        owner,
+        repo,
+        '.github/applicant-welcome.md'
+      );
 
     if (errors.length > 0 || !content) {
-      throw new Error(`Failed to fetch applicant welcome: ${errors.join(', ')}`);
+      logger.error('Failed to fetch applicant welcome', { errors });
+      throw new AppError('Failed to fetch applicant welcome message', 500);
     }
 
     return content;
   }
 
-  /**
-   * Check if a user is a moderator
-   */
   async checkModerator(
     octokit: Octokit,
     owner: string,
@@ -273,19 +248,19 @@ export class ChecklistService {
     username: string
   ): Promise<boolean> {
     try {
-      const { data: moderatorsContent, errors } = await this.githubApiService.getRepoContent(
-        octokit as unknown as import('@octokit/rest').Octokit,
-        owner,
-        repo,
-        '.github/moderators.md'
-      );
+      const { data: moderatorsContent, errors } =
+        await this.githubApiService.getRepoContent(
+          octokit as unknown as import('@octokit/rest').Octokit,
+          owner,
+          repo,
+          '.github/moderators.md'
+        );
 
       if (errors.length > 0 || !moderatorsContent) {
-        console.error('Failed to fetch moderators list:', errors.join(', '));
+        logger.warn('Failed to fetch moderators list', { errors });
         return false;
       }
 
-      // Parse moderators list - each line starting with "- " is a moderator
       const moderatorList = moderatorsContent
         .split('\n')
         .filter((line) => line.startsWith('- '))
@@ -293,7 +268,9 @@ export class ChecklistService {
 
       return moderatorList.includes(username);
     } catch (error) {
-      console.error('Error checking moderator status:', error);
+      logger.error('Error checking moderator status', {
+        error: error instanceof Error ? error.message : error,
+      });
       return false;
     }
   }

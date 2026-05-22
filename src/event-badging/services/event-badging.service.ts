@@ -12,6 +12,9 @@ import {
   IEventApplication,
 } from '../../shared/types';
 
+import { AppError } from '../../shared/errors';
+import { logger } from '../../shared/logger';
+
 @Service()
 export class EventBadgingService {
   constructor(
@@ -22,22 +25,19 @@ export class EventBadgingService {
     private scoringService: ScoringService
   ) {}
 
-  /**
-   * Process incoming webhook event
-   */
   async processWebhook(eventName: string, payload: IGitHubWebhookPayload): Promise<void> {
-    // Only process events related to event badging issues
     if (!payload.issue?.title.match(/event/i)) {
-      // Handle non-event related webhooks
       if (eventName === 'installation' && payload.action === 'new_permissions_accepted') {
-        console.info('New permissions accepted');
+        logger.info('New permissions accepted');
       } else if (eventName === '*') {
-        console.info(`Webhook: ${eventName}.${payload.action} not yet automated or needed`);
+        logger.info(`Webhook: ${eventName}.${payload.action} not yet automated or needed`);
       }
       return;
     }
 
-    const octokit = await this.githubAppService.getInstallationOctokit(payload.installation.id);
+    const octokit = await this.githubAppService.getInstallationOctokit(
+      payload.installation.id
+    );
     const owner = payload.repository.owner.login;
     const repo = payload.repository.name;
 
@@ -49,13 +49,10 @@ export class EventBadgingService {
         await this.handleCommentEvent(octokit, payload, owner, repo);
         break;
       default:
-        console.info(`Unhandled event: ${eventName}.${payload.action}`);
+        logger.info(`Unhandled event: ${eventName}.${payload.action}`);
     }
   }
 
-  /**
-   * Handle issue events (opened, assigned, closed)
-   */
   private async handleIssueEvent(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -77,9 +74,6 @@ export class EventBadgingService {
     }
   }
 
-  /**
-   * Handle comment events
-   */
   private async handleCommentEvent(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -90,20 +84,15 @@ export class EventBadgingService {
 
     const commentBody = payload.comment.body;
 
-    // Handle /result command
     if (commentBody.match('/result')) {
       await this.handleResultCommand(octokit, payload, owner, repo);
     }
 
-    // Handle /end command
     if (commentBody.match('/end')) {
       await this.handleEndCommand(octokit, payload, owner, repo);
     }
   }
 
-  /**
-   * Welcome applicant when issue is opened
-   */
   private async handleIssueOpened(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -113,24 +102,27 @@ export class EventBadgingService {
     if (!payload.issue) return;
 
     try {
-      const welcomeMessage = await this.checklistService.getApplicantWelcome(octokit, owner, repo);
+      const welcomeMessage =
+        await this.checklistService.getApplicantWelcome(octokit, owner, repo);
 
       await this.githubApiService.createIssueComment(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         welcomeMessage
       );
-      console.info('Welcome message posted');
+
+      logger.info('Welcome message posted');
     } catch (error) {
-      console.error('Error posting welcome message:', error);
+      logger.error('Error posting welcome message', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      throw new AppError('Failed to post applicant welcome message', 500);
     }
   }
 
-  /**
-   * Assign checklist when reviewer is assigned
-   */
   private async handleIssueAssigned(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -140,10 +132,9 @@ export class EventBadgingService {
     if (!payload.issue || !payload.assignee) return;
 
     try {
-      // Determine checklist type
-      const checklistType = this.checklistService.getChecklistType(payload.issue.title);
+      const checklistType =
+        this.checklistService.getChecklistType(payload.issue.title);
 
-      // Generate checklist
       const checklist = await this.checklistService.generateReviewerChecklist(
         octokit,
         owner,
@@ -152,42 +143,43 @@ export class EventBadgingService {
         checklistType
       );
 
-      // Get reviewer welcome message
-      const reviewerWelcome = await this.checklistService.getReviewerWelcome(octokit, owner, repo);
+      const reviewerWelcome =
+        await this.checklistService.getReviewerWelcome(octokit, owner, repo);
 
-      // Create heading and message
       const heading = `# Checklist for @${payload.assignee.login}`;
-      const reviewerMessage = `@${payload.assignee.login} ${reviewerWelcome}${checklist}`;
+      const reviewerMessage =
+        `@${payload.assignee.login} ${reviewerWelcome}${checklist}`;
 
-      // Post checklist comment
       await this.githubApiService.createIssueComment(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         `${heading}\n${reviewerMessage}`
       );
-      console.info('Checklist posted for reviewer');
 
-      // Add review-begin label if two reviewers are assigned
+      logger.info('Checklist posted for reviewer');
+
       if (payload.issue.assignees.length === 2) {
         await this.githubApiService.addLabels(
-          octokit as unknown as import('@octokit/rest').Octokit,
+          octokit as any,
           owner,
           repo,
           payload.issue.number,
           ['review-begin']
         );
-        console.info('review-begin label added');
+
+        logger.info('review-begin label added');
       }
     } catch (error) {
-      console.error('Error assigning checklist:', error);
+      logger.error('Error assigning checklist', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      throw new AppError('Failed to assign reviewer checklist', 500);
     }
   }
 
-  /**
-   * Save event when issue is closed
-   */
   private async handleIssueClosed(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -197,7 +189,6 @@ export class EventBadgingService {
     if (!payload.issue) return;
 
     try {
-      // Calculate badge
       const badgeResult = await this.scoringService.calculateBadge(
         octokit,
         owner,
@@ -207,95 +198,34 @@ export class EventBadgingService {
         repo
       );
 
-      // Extract event name from title
       const eventName = payload.issue.title.replace(/\[(.*?)\] /gi, '');
 
-      // Extract event URL from body
-//       let eventUrl = '';
-//      if (payload.issue.title.includes('[Virtual Event]')) {
-//   const startMarker = '- Link to the Event Website: ';
-//   const endMarker = '- Provide verification that you are an event organizer: ';
-//   const startIdx = payload.issue.body.indexOf(startMarker);
-//   const endIdx = payload.issue.body.indexOf(endMarker);
+      let eventUrl = '';
 
-//   if (startIdx !== -1 && endIdx !== -1) {
-//     // slice after startMarker, up to endIdx
-//     eventUrl = payload.issue.body.slice(
-//       startIdx + startMarker.length, 
-//       endIdx
-//     ).trim();
-//   }
+      const body = payload.issue.body || '';
+      const match = body.match(/Link to the Event Website:\s*(.+)$/mi);
 
-//       } else if (payload.issue.title.includes('[In-Person Event]')) {
-//   const startMarker = '- Link to the Event Website: ';
-//   const endMarker = '- Are you an organizer ';
-//   const startIdx = payload.issue.body.indexOf(startMarker);
-//   const endIdx = payload.issue.body.indexOf(endMarker);
+      logger.info(`Regex match result: ${JSON.stringify(match)}`);
 
-//   if (startIdx !== -1 && endIdx !== -1) {
-//     // Slice after startMarker up to endIdx
-//     eventUrl = payload.issue.body.slice(
-//       startIdx + startMarker.length,
-//       endIdx
-//     ).trim();
-//   }
-// }
+      if (match) {
+        eventUrl = match[1];
+      }
 
-// let eventUrl = '';
-//       if (payload.issue.title.includes('[Virtual Event]')) {
-//         const startMarker = '- Link to the Event Website: ';
-//         const endMarker = '- Provide verification that you are an event organizer: ';
-//         const startIdx = payload.issue.body.indexOf(startMarker);
-//         const endIdx = payload.issue.body.indexOf(endMarker);
-//         if (startIdx !== -1 && endIdx !== -1) {
-//           eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
-          
-//         }
-//       } else if (payload.issue.title.includes('[In-Person Event]')) {
-//         const startMarker = '- Link to the Event Website: ';
-//         const endMarker = '- Are you an organizer ';
-//         const startIdx = payload.issue.body.indexOf(startMarker);
-//         const endIdx = payload.issue.body.indexOf(endMarker);
-//         if (startIdx !== -1 && endIdx !== -1) {
-//           eventUrl = payload.issue.body.slice(startIdx, endIdx - 2).replace(startMarker, '');
-//         }
-//       }
-      
-
-
-
-let eventUrl = '';
-
-const body = payload.issue.body || '';
-const match = body.match(
-     /Link to the Event Website:\s*(.+)$/mi
-  );
-  console.info(`Regex match result: ${match}`);
-
-  if (match) {
-    eventUrl = match[1];
-  }
-
-
-      // Create badge object
       const badge: IEventBadge = {
         name: badgeResult.assigned_badge,
         badgeURL: badgeResult.badge_URL,
       };
 
-      // Create reviewers array
-      const reviewers: IEventReviewer[] = payload.issue.assignees.map((assignee) => ({
-        name: assignee.login,
-        github_profile_link: assignee.html_url,
+      const reviewers: IEventReviewer[] = payload.issue.assignees.map((a) => ({
+        name: a.login,
+        github_profile_link: a.html_url,
       }));
 
-      // Create application object
       const application: IEventApplication = {
         app_no: payload.issue.number,
         app_URL: payload.issue.html_url,
       };
 
-      // Save event to database
       await this.eventRepository.createEvent({
         event_name: eventName,
         event_URL: eventUrl,
@@ -304,16 +234,16 @@ const match = body.match(
         application,
       });
 
-      console.info('Event saved to database');
-      console.info(`Event URL: ${eventUrl}`);
+      logger.info('Event saved to database', { eventUrl });
     } catch (error) {
-      console.error('Error saving event:', error);
+      logger.error('Error saving event', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      throw new AppError('Failed to persist event after closure', 500);
     }
   }
 
-  /**
-   * Handle /result command - post review results
-   */
   private async handleResultCommand(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -337,21 +267,23 @@ const match = body.match(
         `\nNumber of reviewers: ${badgeResult.reviewerCount}\n`;
 
       await this.githubApiService.createIssueComment(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         message
       );
-      console.info('Results posted');
+
+      logger.info('Results posted');
     } catch (error) {
-      console.error('Error posting results:', error);
+      logger.error('Error posting results', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      throw new AppError('Failed to post review results', 500);
     }
   }
 
-  /**
-   * Handle /end command - end review and assign badge
-   */
   private async handleEndCommand(
     octokit: Octokit,
     payload: IGitHubWebhookPayload,
@@ -374,44 +306,50 @@ const match = body.match(
         `\n**Markdown Badge Link:**\n\`\`\`\n${badgeResult.markdownBadgeImage}\n\`\`\`` +
         `\n**HTML Badge Link:**\n\`\`\`\n${badgeResult.htmlBadgeImage}\n\`\`\``;
 
-      // Remove review-begin label
       await this.githubApiService.removeLabel(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         'review-begin'
       );
 
-      // Add review-end label
       await this.githubApiService.addLabels(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         ['review-end']
       );
 
-      // Post badge comment
       await this.githubApiService.createIssueComment(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number,
         `${badgeResult.markdownBadgeImage}${message}`
       );
 
-      // Close issue
       await this.githubApiService.closeIssue(
-        octokit as unknown as import('@octokit/rest').Octokit,
+        octokit as any,
         owner,
         repo,
         payload.issue.number
       );
 
-      console.info('Review ended and issue closed');
+      logger.info('Review ended and issue closed');
     } catch (error) {
-      console.error('Error ending review:', error);
+      logger.error('Error ending review', {
+        error: error instanceof Error ? error.message : error,
+      });
+
+      throw new AppError('Failed to complete review end flow', 500);
     }
   }
 }
+
+
+
+
+
+
