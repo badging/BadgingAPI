@@ -1,21 +1,20 @@
 import { ScoringService } from '../../../src/event-badging/services/scoring.service';
-import { mockGitHubApiService } from '../../mocks/github.mock';
+import { createMockGitHubApiService } from '../../mocks/github.mock';
 import { createMockOctokit } from '../../mocks/octokit.mock';
 import * as envConfig from '../../../src/shared/config/environment';
 
 
 describe('ScoringService', () => {
   let service: ScoringService;
-    let githubApiServiceMock: any;
-    let mockOctokit: any;   
+    let githubApiServiceMock: ReturnType<typeof createMockGitHubApiService>;
+    let mockOctokit: any;
 
   beforeEach(() => {
-    mockGitHubApiService.listIssueComments.mockReset();
-    githubApiServiceMock = mockGitHubApiService;
+    githubApiServiceMock = createMockGitHubApiService();
     mockOctokit = createMockOctokit();
-   
 
-    service = new ScoringService(githubApiServiceMock);
+
+    service = new ScoringService(githubApiServiceMock as any);
 
     jest.spyOn(envConfig, 'isDevelopment').mockReturnValue(false);
     jest.spyOn(envConfig, 'getEnvVar').mockImplementation((key) => {

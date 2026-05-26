@@ -49,8 +49,7 @@ export class ScoringService {
       throw new AppError(
         `Failed to get comments: ${errors.join(', ')}`,
         502,
-        true,
-        'GITHUB_COMMENTS_FETCH_FAILED'
+        true
       );
     }
 

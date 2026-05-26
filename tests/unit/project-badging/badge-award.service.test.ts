@@ -89,17 +89,14 @@ describe('BadgeAwardService', () => {
     expect(augurApiService.registerBadgedRepo).not.toHaveBeenCalled();
   });
 
-  it('should catch errors and return false if mailerService throws', async () => {
+  it('should throw AppError if mailerService throws', async () => {
     mailerService.sendBadgingEmail.mockRejectedValue(new Error('SMTP Down'));
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    const result = await service.awardBronzeBadge(
-      mockUser.id, mockUser.name, mockUser.email, 1, null, 'url', 'sha'
-    );
-
-    expect(result).toBe(false);
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Error awarding bronze badge'), 'SMTP Down');
-    errorSpy.mockRestore();
+    await expect(
+      service.awardBronzeBadge(
+        mockUser.id, mockUser.name, mockUser.email, 1, null, 'url', 'sha'
+      )
+    ).rejects.toThrow('Badge awarding process failed');
   });
 
    it('should handle GitLab repository IDs correctly when GitHub ID is null', async () => {

@@ -21,7 +21,7 @@ describe('GitHubAuthService', () => {
       const url = service.getProjectBadgingAuthUrl();
       
       expect(url).toContain('client_id=project_id');
-      expect(url).toContain('scope=read:user,user:email,public_repo');
+      expect(url).toContain('scope=read:user,user:email');
     });
 
     test('getEventBadgingAuthUrl() should include encrypted state and event client id', () => {
@@ -31,7 +31,7 @@ describe('GitHubAuthService', () => {
       
       expect(url).toContain('client_id=event_id');
       expect(url).toContain('state=my-secret-state');
-      expect(url).toContain('scope=public_repo');
+      expect(url).toContain('scope=read:user,user:email');
     });
   });
 
@@ -90,8 +90,8 @@ describe('GitHubAuthService', () => {
   });
 
   describe('Octokit Factory', () => {
-    test('createOctokit() should return instance with auth header', () => {
-      const octokit = service.createOctokit('my_token');
+    test('createUserOctokit() should return instance with auth header', () => {
+      const octokit = service.createUserOctokit('my_token');
       expect(octokit).toBeInstanceOf(Octokit);
     });
 

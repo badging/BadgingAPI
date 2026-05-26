@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import { MailerService } from '../../../../src/shared/services/mailer.service';
 import * as envConfig from '../../../../src/shared/config/environment';
+import { logger } from '../../../../src/shared/logger';
 
 jest.mock('nodemailer');
 jest.mock('fs');
@@ -65,7 +66,7 @@ describe('MailerService', () => {
   test('should return false and log warning if SMTP is not configured', () => {
 
     jest.spyOn(envConfig, 'getEnvVar').mockReturnValue('');
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
 
     const unconfiguredService = new MailerService();
     
@@ -77,7 +78,7 @@ describe('MailerService', () => {
   test('sendSuccessEmail() should return false if nodemailer fails', async () => {
     (fs.readFileSync as jest.Mock).mockReturnValue('template');
     mockTransporter.sendMail.mockRejectedValue(new Error('SMTP Error'));
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => logger);
 
     const result = await service.sendSuccessEmail({ to: 'test@test.com' } as any);
 

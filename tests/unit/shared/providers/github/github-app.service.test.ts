@@ -5,12 +5,14 @@ jest.mock('octokit', () => ({
 import { GitHubAppService } from '../../../../../src/shared/providers/github/github-app.service';
 import * as envConfig from '../../../../../src/shared/config/environment';
 import { App } from 'octokit';
-import { mockGitHubAppInstance } from '../../../../mocks/github.mock';
+import { createMockGitHubAppInstance } from '../../../../mocks/github.mock';
+import { logger } from '../../../../../src/shared/logger';
 
 const MockedApp = App as unknown as jest.Mock;
 
 describe('GitHubAppService', () => {
   let service: GitHubAppService;
+  let mockGitHubAppInstance: ReturnType<typeof createMockGitHubAppInstance>;
 
   const mockValidEnv = () => {
     jest.spyOn(envConfig, 'getEnvVar').mockImplementation((key: string) => {
@@ -30,7 +32,7 @@ describe('GitHubAppService', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
-
+    mockGitHubAppInstance = createMockGitHubAppInstance();
     MockedApp.mockReturnValue(mockGitHubAppInstance);
   });
 
@@ -69,7 +71,7 @@ describe('GitHubAppService', () => {
   });
 
     test('should fail to initialize if an env var is missing', () => {
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
 
     jest.spyOn(envConfig, 'getEnvVar').mockImplementation((key) =>
       key === 'GITHUB_APP_ID' ? '' : 'some-value'
@@ -78,11 +80,11 @@ describe('GitHubAppService', () => {
     service = new GitHubAppService();
 
     expect(service.isConfigured()).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('not fully configured')
     );
 
-    consoleSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
   test('getInstallationOctokit() should throw error if app is not configured', async () => {
@@ -95,22 +97,12 @@ describe('GitHubAppService', () => {
   });
 
   test('should catch and log errors during App instantiation', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
     mockValidEnv();
 
     MockedApp.mockImplementationOnce(() => {
       throw new Error('Invalid Private Key Format');
     });
 
-    service = new GitHubAppService();
-
-    expect(service.isConfigured()).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Failed to initialize GitHub App:',
-      expect.any(Error)
-    );
-
-    consoleSpy.mockRestore();
+    expect(() => new GitHubAppService()).toThrow('GitHub App initialization failed');
   });
 });

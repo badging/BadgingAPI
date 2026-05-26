@@ -174,19 +174,12 @@ describe('EventBadgingService', () => {
 
   test('should handle and log errors during comment creation', async () => {
     const payload = createPayload('[Event]', 'opened');
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
 
     githubApiService.createIssueComment.mockRejectedValue(new Error('GitHub Down'));
 
-    await service.processWebhook('issues', payload);
-    await Promise.resolve();
-
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Error posting welcome message:',
-      expect.any(Error)
+    await expect(service.processWebhook('issues', payload)).rejects.toThrow(
+      'Failed to post applicant welcome message'
     );
-
-    errorSpy.mockRestore();
   });
 
   test('should process /result command from a comment', async () => {

@@ -1,11 +1,14 @@
 import { ChecklistService } from '../../../src/event-badging/services/checklist.service';
-import { mockGitHubApiService } from '../../mocks/github.mock';
+import { createMockGitHubApiService } from '../../mocks/github.mock';
+import { logger } from '../../../src/shared/logger';
 
 describe('ChecklistService', () => {
   let service: ChecklistService;
+  let mockGitHubApiService: ReturnType<typeof createMockGitHubApiService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGitHubApiService = createMockGitHubApiService();
     service = new ChecklistService(mockGitHubApiService as any);
   });
 
@@ -31,18 +34,18 @@ describe('ChecklistService', () => {
     });
 
     await expect(service.generateReviewerChecklist({} as any, 'o', 'r', 'body', 'virtual'))
-      .rejects.toThrow('Failed to fetch checklist: 404 Not Found');
+      .rejects.toThrow('Failed to fetch checklist template');
   });
 
-  test('checkModerator() should return false and log error if file is missing', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+  test('checkModerator() should return false and log warning if file is missing', async () => {
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
     mockGitHubApiService.getRepoContent.mockResolvedValue({ data: null, errors: ['File missing'] });
 
     const result = await service.checkModerator({} as any, 'o', 'r', 'user');
     
     expect(result).toBe(false);
-    expect(consoleSpy).toHaveBeenCalled();
-    consoleSpy.mockRestore();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   test('generateReviewerChecklist() should remove existing checkmarks from body', async () => {

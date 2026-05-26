@@ -1,5 +1,6 @@
 import { DEIScannerService } from '../../../src/project-badging/services/dei-scanner.service';
 import { DEI_REQUIRED_SECTIONS } from '../../../src/shared/types';
+import { logger } from '../../../src/shared/logger';
 
 jest.mock('axios');
 
@@ -61,7 +62,7 @@ describe('DEIScannerService', () => {
 
   test('getDEITemplate() should return null and log error on API failure', async () => {
     mockAxiosGet.mockRejectedValueOnce(new Error('GitHub API Limit'));
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => logger);
 
     const result = await service.getDEITemplate();
 
