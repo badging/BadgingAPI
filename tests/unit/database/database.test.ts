@@ -1,18 +1,3 @@
-/**
- * Unit tests for the Database class.
- *
- * Unlike the original tests/unit/database/database.test.ts (which swapped the
- * `Database` class itself with a mock via the DI container — so it only tested
- * the mock), these tests mock the `sequelize-typescript` module so that the
- * `Sequelize` constructor is a jest mock. We then `new Database()` directly
- * and assert the real class's behaviour: that the constructor receives the
- * right options and that `connect()` calls `.authenticate()` (and `.sync()`).
- */
-
-import 'reflect-metadata';
-
-// Mock sequelize-typescript BEFORE importing the Database module so the
-// Sequelize constructor inside Database is the jest mock.
 const mockAuthenticate = jest.fn();
 const mockSync = jest.fn();
 const mockClose = jest.fn();
@@ -29,7 +14,6 @@ jest.mock('sequelize-typescript', () => ({
   Sequelize: MockSequelize,
 }));
 
-// Mock the env config so the constructor has deterministic inputs.
 jest.mock('../../../src/shared/config/environment', () => ({
   getEnvVar: jest.fn((key: string, _required?: boolean | string) => {
     const values: Record<string, string> = {
@@ -45,12 +29,11 @@ jest.mock('../../../src/shared/config/environment', () => ({
   isDevelopment: jest.fn(() => false),
 }));
 
-// Mock the models so importing Database doesn't drag in real Sequelize decorators.
+
 jest.mock('../../../src/shared/data-access/models/user.model', () => ({ User: class User {} }));
 jest.mock('../../../src/shared/data-access/models/repo.model', () => ({ Repo: class Repo {} }));
 jest.mock('../../../src/shared/data-access/models/event.model', () => ({ Event: class Event {} }));
 
-// Silence the logger so tests don't pollute stdout.
 jest.mock('../../../src/shared/logger', () => ({
   logger: {
     info: jest.fn(),
@@ -60,7 +43,6 @@ jest.mock('../../../src/shared/logger', () => ({
   },
 }));
 
-// Now import the class under test and the mocked helpers.
 import { Database } from '../../../src/shared/data-access/database';
 import { User } from '../../../src/shared/data-access/models/user.model';
 import { Repo } from '../../../src/shared/data-access/models/repo.model';

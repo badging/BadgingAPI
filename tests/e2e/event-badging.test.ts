@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import request from 'supertest';
 import { Container } from 'typedi';
 import { useContainer } from 'routing-controllers';

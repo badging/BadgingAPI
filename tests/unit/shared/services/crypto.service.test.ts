@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { CryptoService } from '../../../../src/shared/services/crypto.service';
 import * as envConfig from '../../../../src/shared/config/environment';
 
