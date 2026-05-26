@@ -1,3 +1,3 @@
- export const mockUserRepository = {
-    saveUser: jest.fn(),
-  };
+export const createMockUserRepository = () => ({
+  saveUser: jest.fn(),
+});
