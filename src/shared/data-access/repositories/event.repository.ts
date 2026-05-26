@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { Event } from '../models/event.model';
 import { IEventCreationAttributes } from '../../types';
+import { logger } from '../../logger'
 
 @Service()
 export class EventRepository {
@@ -32,10 +33,10 @@ export class EventRepository {
   async createEvent(eventData: IEventCreationAttributes): Promise<Event | null> {
     try {
       const newEvent = await this.create(eventData);
-      console.log(`Event ${newEvent.event_name} created successfully`);
+      logger.info(`Event ${newEvent.event_name} created successfully`);
       return newEvent;
     } catch (error) {
-      console.error('Error creating event:', error);
+      logger.error('Error creating event:', error);
       return null;
     }
   }

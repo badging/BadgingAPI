@@ -1,12 +1,13 @@
 import { input, password } from '@inquirer/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from '../shared/logger';
 
 interface ConfigValues {
   // Database configuration
   db_name: string;
   db_user: string;
-  db_password: string;
+  db_password?: string;
   db_host: string;
   db_port: string;
 
@@ -45,24 +46,30 @@ interface ConfigValues {
   encrypt_key: string;
 
   // Smee (development)
-  smee_webhook_url: string;
+  smee_client_url: string;
+  webhook_path: string;
+
+  // Repository for event badging
+  repository_name: string;
+  repository_owner: string;            
+  
 }
 
 async function configure(): Promise<void> {
   const envPath = path.resolve(__dirname, '../../.env');
 
   if (fs.existsSync(envPath)) {
-    console.info('.env file already exists. Delete it first if you want to reconfigure.');
+    logger.info('.env file already exists. Delete it first if you want to reconfigure.');
     return;
   }
 
-  console.info('Please input the fields below to configure your project locally\n');
+  logger.info('Please input the fields below to configure your project locally\n');
 
   const values: ConfigValues = {
     // Database configuration
     db_name: await input({ message: 'Database name:', default: 'badging' }),
     db_user: await input({ message: 'Database user name:', default: 'postgres' }),
-    db_password: await password({ message: 'Database password:', mask: true }),
+    db_password: await password({ message: 'Database password (optional):', mask: true }) || undefined,
     db_host: await input({ message: 'Database host address:', default: 'localhost' }),
     db_port: await input({ message: 'Database port:', default: '5432' }),
 
@@ -107,10 +114,18 @@ async function configure(): Promise<void> {
     }),
 
     // Smee (development)
-    smee_webhook_url: await input({
+    smee_client_url: await input({
       message: 'Smee.io webhook URL (for development):',
       default: '',
     }),
+
+    webhook_path: await input({message: 'webhook path:'}),
+
+  
+
+    // Repository for event badging
+    repository_name: await input({ message: 'Repository name for event badging:' }),
+    repository_owner: await input({ message: 'Repository owner for event badging:' }),
   };
 
   const envFile = `# Server Configuration
@@ -123,7 +138,8 @@ DB_HOST=${values.db_host}
 DB_PORT=${values.db_port}
 DB_NAME=${values.db_name}
 DB_USER=${values.db_user}
-DB_PASSWORD=${values.db_password}
+${values.db_password ? `DB_PASSWORD=${values.db_password}` : ''}
+//DB_PASSWORD=${values.db_password}
 
 # GitHub OAuth (for project badging)
 GITHUB_CLIENT_ID=${values.github_auth_client_id}
@@ -155,14 +171,19 @@ NODEMAILER_ADDRESS=${values.nodemailer_address}
 ENCRYPT_KEY=${values.encrypt_key}
 
 # Smee (development webhook forwarding)
-SMEE_WEBHOOK_URL=${values.smee_webhook_url}
+SMEE_CLIENT_URL=${values.smee_client_url}
+WEBHOOK_PATH=${values.webhook_path}
+
+# Repository for event badging
+REPOSITORY_NAME=${values.repository_name}
+REPOSITORY_OWNER=${values.repository_owner}
 `;
 
   fs.writeFileSync(envPath, envFile);
-  console.info('\n✅ Configuration file (.env) created successfully at project root.');
+  logger.info('\n Configuration file (.env) created successfully at project root.');
 }
 
 configure().catch((error) => {
-  console.error('Configuration failed:', error);
+  logger.error('Configuration failed:', error);
   process.exit(1);
 });

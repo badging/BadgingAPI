@@ -2,6 +2,7 @@ import { Service } from 'typedi';
 import { Repo } from '../models/repo.model';
 import { User } from '../models/user.model';
 import { IRepoCreationAttributes } from '../../types';
+import { logger } from '../../logger'
 
 @Service()
 export class RepoRepository {
@@ -70,7 +71,7 @@ export class RepoRepository {
   ): Promise<number | null> {
     // Validate that exactly one of githubRepoId or gitlabRepoId is provided
     if ((githubRepoId && gitlabRepoId) || (!githubRepoId && !gitlabRepoId)) {
-      console.error('Error creating repo: provide either githubRepoId or gitlabRepoId');
+      logger.error('Error creating repo: provide either githubRepoId or gitlabRepoId');
       return null;
     }
 
@@ -95,7 +96,7 @@ export class RepoRepository {
       return repo.id;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error saving repo:', errorMessage);
+      logger.error('Error saving repo:', errorMessage);
       return null;
     }
   }

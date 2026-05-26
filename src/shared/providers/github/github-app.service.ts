@@ -1,6 +1,7 @@
 import { Service } from 'typedi';
 import { App, Octokit } from 'octokit';
 import { getEnvVar } from '../../config/environment';
+import { logger } from '../../logger';
 
 @Service()
 export class GitHubAppService {
@@ -19,7 +20,7 @@ export class GitHubAppService {
       const webhookSecret = getEnvVar('GITHUB_APP_WEBHOOK_SECRET', false);
 
       if (!appId || !privateKey || !clientId || !clientSecret || !webhookSecret) {
-        console.warn('GitHub App is not fully configured - webhook handling will be disabled');
+        logger.warn('GitHub App is not fully configured - webhook handling will be disabled');
         return;
       }
 
@@ -33,7 +34,7 @@ export class GitHubAppService {
         webhooks: { secret: webhookSecret },
       });
     } catch (error) {
-      console.error('Failed to initialize GitHub App:', error);
+      throw new Error('GitHub App initialization failed');
     }
   }
 

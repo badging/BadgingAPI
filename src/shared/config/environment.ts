@@ -10,9 +10,9 @@ export interface IEnvironmentConfig {
   DB_HOST: string;
   DB_NAME: string;
   DB_USER: string;
-  DB_PASSWORD: string;
+  DB_PASSWORD?: string;
   DB_DIALECT: 'mysql' | 'postgres' | 'sqlite' | 'mariadb';
-
+  TEST_DB_NAME?: string;
   // GitHub OAuth (Project Badging)
   GITHUB_AUTH_CLIENT_ID: string;
   GITHUB_AUTH_CLIENT_SECRET: string;
@@ -27,11 +27,18 @@ export interface IEnvironmentConfig {
   GITHUB_APP_CLIENT_ID: string;
   GITHUB_APP_CLIENT_SECRET: string;
   GITHUB_APP_WEBHOOK_SECRET: string;
+  GITHUB_APP_INSTALLATION_ID: string;
+  GITHUB_APP_INSTALLATION_TOKEN: string;
 
   // GitLab OAuth
   GITLAB_APP_CLIENT_ID: string;
   GITLAB_APP_CLIENT_SECRET: string;
   GITLAB_APP_REDIRECT_URI: string;
+
+  //repository for event badging
+  REPOSITORY_NAME: string;
+  REPOSITORY_OWNER: string;
+  
 
   // Email
   EMAIL_HOST: string;

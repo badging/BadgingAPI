@@ -132,3 +132,11 @@ report*
 deploy.tests.yml
 
 /tmp/mysql/*
+
+# ignore .vscode 
+.vscode/
+# ignore all.pem files
+*.pem
+
+
+

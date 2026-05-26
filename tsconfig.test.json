@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",             // include everything from project root
+    "outDir": "./dist-tests",   // compiled test files (optional)
+    "types": ["jest", "node"]   // Jest & Node globals
+  },
+  "include": ["src", "tests"]   // include source + tests
+}

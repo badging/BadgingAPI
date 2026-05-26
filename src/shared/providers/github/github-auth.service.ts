@@ -2,6 +2,7 @@ import { Service } from 'typedi';
 import { Octokit } from '@octokit/rest';
 import axios from 'axios';
 import { getEnvVar } from '../../config/environment';
+import { logger } from '../../logger';
 import { IOAuthTokenResponse } from '../../types';
 
 export interface IGitHubAuthConfig {
@@ -17,7 +18,7 @@ export class GitHubAuthService {
    */
   getProjectBadgingAuthUrl(): string {
     const clientId = getEnvVar('GITHUB_AUTH_CLIENT_ID');
-    const scopes = ['read:user', 'user:email', 'public_repo'];
+    const scopes = ['read:user', 'user:email'];
 
     return `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=${scopes.join(',')}`;
   }
@@ -27,7 +28,7 @@ export class GitHubAuthService {
    */
   getEventBadgingAuthUrl(encryptedState: string): string {
     const clientId = getEnvVar('GITHUB_AUTH_CLIENT_ID_EVENT');
-    const scopes = ['public_repo'];
+    const scopes = ['read:user', 'user:email'];
 
     return `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=${scopes.join(',')}&state=${encryptedState}`;
   }
@@ -66,7 +67,13 @@ export class GitHubAuthService {
         errors: [],
       };
     } catch (error) {
+      logger.error('Failed to exchange GitHub OAuth code', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        isEventBadging,
+      });
+
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
       return {
         access_token: '',
         errors: [errorMessage],
@@ -77,7 +84,7 @@ export class GitHubAuthService {
   /**
    * Create an Octokit instance with the given access token
    */
-  createOctokit(accessToken: string): Octokit {
+  createUserOctokit(accessToken: string): Octokit {
     return new Octokit({ auth: accessToken });
   }
 

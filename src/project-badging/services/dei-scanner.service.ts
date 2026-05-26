@@ -1,5 +1,6 @@
 import { Service } from 'typedi';
 import { DEI_REQUIRED_SECTIONS, DEISection } from '../../shared/types';
+import { logger } from '../../shared/logger';
 
 export interface ILocalDEIScanResult {
   isValid: boolean;
@@ -44,7 +45,7 @@ export class DEIScannerService {
       );
       return Buffer.from(response.data.content, 'base64').toString();
     } catch (error) {
-      console.error('Error fetching DEI template:', error);
+      logger.error('Error fetching DEI template:', error);
       return null;
     }
   }
