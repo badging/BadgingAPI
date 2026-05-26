@@ -10,6 +10,7 @@ import { ChecklistService, ScoringService } from '../../src/event-badging/servic
 import { EventRepository } from '../../src/shared/data-access/repositories/event.repository';
 
 import { createMockOctokit } from '../mocks/octokit.mock';
+import { globalErrorHandler } from '../../src/middleware';
 const mockGitHubApiService = {
   createIssueComment: jest.fn(),
   addLabels: jest.fn(),
@@ -51,7 +52,8 @@ describe('EventBadgingController Integration', () => {
 
     app = express();
     app.use(express.json());
-    useExpressServer(app, { controllers: [EventBadgingController] });
+    useExpressServer(app, { controllers: [EventBadgingController], defaultErrorHandler: false });
+    app.use(globalErrorHandler);
     
     jest.spyOn(console, 'log').mockImplementation(() => {});
   jest.spyOn(console, 'info').mockImplementation(() => {});
@@ -154,7 +156,7 @@ describe('EventBadgingController Integration', () => {
         .send({ installation: { id: 1 }, issue: { title: 'event' } });
   
       expect(res.status).toBe(500);
-      expect(res.text).toBe('Error processing webhook');
+      expect(res.body.message).toBe('Internal server error');
     });
   
     it('should ignore webhooks that are not event-related', async () => {

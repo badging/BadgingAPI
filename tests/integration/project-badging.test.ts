@@ -13,6 +13,7 @@ import { Repo } from '../../src/shared/data-access/models/repo.model';
 import { ProjectBadgingController } from '../../src/project-badging/controllers/project-badging.controller';
 import { GitHubApiService, GitLabApiService, RepoRepository, MailerService, AugurApiService } from '../../src/shared';
 import { DEIScannerService, BadgeAwardService } from '../../src/project-badging/services';
+import { globalErrorHandler } from '../../src/middleware';
 describe('ProjectBadgingController Integration', () => {
   let app: express.Express;
 
@@ -70,8 +71,9 @@ describe('ProjectBadgingController Integration', () => {
 
   useExpressServer(app, {
     controllers: [ProjectBadgingController],
-    defaultErrorHandler: true,
+    defaultErrorHandler: false,
   });
+  app.use(globalErrorHandler);
 });
 
   afterAll(async () => {
@@ -111,7 +113,6 @@ describe('ProjectBadgingController Integration', () => {
         repos: [{ id: 1 }],
       });
 
-    console.log('Response:', res.body);
     expect(res.status).toBe(200);
     expect(res.body.results[0].success).toBe(true);
     expect(res.body.results[0].message).toBe('Badge awarded successfully');
@@ -121,7 +122,7 @@ describe('ProjectBadgingController Integration', () => {
     user.name,
     'Bronze',
     expect.stringContaining('![Bronze Badge]'),
-    expect.stringContaining('&lt;img')
+    expect.stringContaining('<img')
     );
 
     const saved = await Repo.findOne({ where: { githubRepoId: 1, DEICommitSHA: 'sha-1' } });
@@ -174,7 +175,7 @@ describe('ProjectBadgingController Integration', () => {
       });
   
       expect(res.status).toBe(400);
-      expect(res.body.error).toContain('Unknown provider');
+      expect(res.body.message).toContain('Invalid provider');
     });
   
     it('should return 404 for non-existent user', async () => {
@@ -185,7 +186,7 @@ describe('ProjectBadgingController Integration', () => {
       });
   
       expect(res.status).toBe(404);
-      expect(res.body.error).toContain('User not found');
+      expect(res.body.message).toContain('User not found');
     });
   
     it('should handle partial success/failure', async () => {
